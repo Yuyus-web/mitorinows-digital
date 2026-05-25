@@ -245,7 +245,7 @@
                             <button onclick="setPenColor('#1e293b')" id="color-#1e293b" class="w-6 h-6 rounded-full bg-slate-800 border-2 border-indigo-600 scale-110 shadow-sm transition-all" title="墨色"></button>
                             <button onclick="setPenColor('#ef4444')" id="color-#ef4444" class="w-6 h-6 rounded-full bg-red-500 border-2 border-transparent hover:scale-105 transition-all" title="朱赤"></button>
                             <button onclick="setPenColor('#0ea5e9')" id="color-#0ea5e9" class="w-6 h-6 rounded-full bg-sky-500 border-2 border-transparent hover:scale-105 transition-all" title="空青"></button>
-                            <button onclick="setPenColor('#10b981')" id="color-#10b981" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-transparent hover:scale-105 transition-all" title="若草"></button>
+                            <button onclick="setPenColor('#10b981')" id="color('#10b981')" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-transparent hover:scale-105 transition-all" title="若草"></button>
                         </div>
 
                         <!-- ペン先の太さ -->
@@ -298,175 +298,175 @@
                     </div>
                 </div>
 
-            </div>
-        </main>
-    </div>
+                <!-- ========================================================
+                     各種モーダルウィンドウ (全画面時にも最前面に表示できるように親ボード直下に移設)
+                     ======================================================= -->
+                <!-- 新規付箋追加 共通モーダル (z-[100000]) -->
+                <div id="recordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[100000] p-4">
+                    <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
+                        <div id="modalHeader" class="p-5 border-b border-slate-100 flex justify-between items-center">
+                            <h3 id="modalTitle" class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <span>付箋を追加</span>
+                            </h3>
+                            <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 transition text-xl">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
+                            <input type="hidden" id="formType">
+                            
+                            <div id="modalInputContainer" class="p-4 rounded-xl border">
+                                <label id="modalInputLabel" class="block text-xs font-bold mb-1.5">内容</label>
+                                <textarea id="formText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:outline-none transition"></textarea>
+                            </div>
 
-    <!-- ========================================================
-         各種モーダルウィンドウ (ポップアップ)
-         ======================================================= -->
-    <!-- 新規付箋追加 共通モーダル -->
-    <div id="recordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
-            <div id="modalHeader" class="p-5 border-b border-slate-100 flex justify-between items-center">
-                <h3 id="modalTitle" class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-pen-to-square"></i>
-                    <span>付箋を追加</span>
-                </h3>
-                <button onclick="closeAddModal()" class="text-slate-400 hover:text-slate-600 transition text-xl">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="formType">
-                
-                <div id="modalInputContainer" class="p-4 rounded-xl border">
-                    <label id="modalInputLabel" class="block text-xs font-bold mb-1.5">内容</label>
-                    <textarea id="formText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:outline-none transition"></textarea>
-                </div>
-
-                <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeAddModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition">
-                        キャンセル
-                    </button>
-                    <button type="submit" id="modalSubmitBtn" class="text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition flex items-center gap-2 text-xs">
-                        <i class="fa-solid fa-circle-plus"></i>
-                        <span>ボードに貼る</span>
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- 共通付箋編集モーダル -->
-    <div id="editRecordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
-            <div id="editModalHeader" class="p-5 border-b border-slate-100 flex justify-between items-center">
-                <h3 id="editModalTitle" class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-pen"></i>
-                    <span>記録の編集</span>
-                </h3>
-                <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition text-xl">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-            <form id="editForm" onsubmit="handleEditFormSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="editRecordId">
-                <input type="hidden" id="editRecordType">
-                
-                <div id="editModalInputContainer" class="p-4 rounded-xl border">
-                    <label id="editModalInputLabel" class="block text-xs font-bold mb-1.5">内容</label>
-                    <textarea id="editText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:outline-none transition"></textarea>
-                </div>
-
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
-                    <button type="button" onclick="closeEditModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition">キャンセル</button>
-                    <button type="submit" id="editModalSubmitBtn" class="text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition text-xs">変更を保存</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- バックアップ・インポート モーダル -->
-    <div id="backupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50/50">
-                <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                    <i class="fa-solid fa-database text-indigo-600"></i>
-                    データ移行（バックアップ／復元）
-                </h3>
-                <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 transition text-lg"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <div class="p-5 space-y-4 text-xs">
-                <p class="text-slate-500 leading-relaxed">全ワークスペースのデータ退避や他端末への移行に利用します。復元を実行すると、現在のすべてのボードはバックアップの状態に上書きされます。</p>
-                
-                <!-- エクスポート -->
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-700 mb-2 flex items-center gap-1.5">
-                        <i class="fa-solid fa-download text-indigo-500"></i>バックアップファイルを保存
-                    </h4>
-                    <button onclick="exportDataJSON()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl transition inline-flex items-center gap-1.5 shadow-sm">
-                        <i class="fa-solid fa-file-arrow-down"></i> バックアップを生成
-                    </button>
-                </div>
-
-                <!-- インポート -->
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                    <h4 class="font-bold text-slate-700 mb-2 flex items-center gap-1.5 text-red-600">
-                        <i class="fa-solid fa-upload text-amber-500"></i>バックアップファイルから復元
-                    </h4>
-                    <div class="flex items-center gap-2 mt-2">
-                        <input type="file" id="importFile" accept=".json" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
-                        <button onclick="importDataJSON()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all flex-shrink-0">
-                            適用する
-                        </button>
+                            <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                                <button type="button" onclick="closeAddModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition">
+                                    キャンセル
+                                </button>
+                                <button type="submit" id="modalSubmitBtn" class="text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition flex items-center gap-2 text-xs">
+                                    <i class="fa-solid fa-circle-plus"></i>
+                                    <span>ボードに貼る</span>
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </div>
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
-                <button onclick="closeBackupModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-4 py-2 rounded-xl text-xs transition">閉じる</button>
-            </div>
-        </div>
-    </div>
 
-    <!-- カスタム確認ダイアログ -->
-    <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[99999] p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
-            <div class="p-5 border-b border-slate-100 flex items-center gap-2.5">
-                <div class="bg-red-50 text-red-600 p-2 rounded-lg" id="confirmIconContainer">
-                    <i id="confirmIcon" class="fa-solid fa-triangle-exclamation text-lg animate-pulse"></i>
-                </div>
-                <h3 class="text-base font-bold text-slate-800">実行確認</h3>
-            </div>
-            <div class="p-5 text-xs text-slate-600 whitespace-pre-wrap leading-relaxed" id="confirmMessage">
-                確認メッセージを挿入します。
-            </div>
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
-                <button id="confirmCancelBtn" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold px-4 py-2 rounded-xl text-xs transition">
-                    キャンセル
-                </button>
-                <button id="confirmOkBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm">
-                    実行する
-                </button>
-            </div>
-        </div>
-    </div>
+                <!-- 共通付箋編集モーダル (z-[100000]) -->
+                <div id="editRecordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-[100000] p-4">
+                    <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
+                        <div id="editModalHeader" class="p-5 border-b border-slate-100 flex justify-between items-center">
+                            <h3 id="editModalTitle" class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-pen"></i>
+                                <span>記録の編集</span>
+                            </h3>
+                            <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 transition text-xl">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                        <form id="editForm" onsubmit="handleEditFormSubmit(event)" class="p-6 space-y-4">
+                            <input type="hidden" id="editRecordId">
+                            <input type="hidden" id="editRecordType">
+                            
+                            <div id="editModalInputContainer" class="p-4 rounded-xl border">
+                                <label id="editModalInputLabel" class="block text-xs font-bold mb-1.5">内容</label>
+                                <textarea id="editText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:outline-none transition"></textarea>
+                            </div>
 
-    <!-- カスタムプロンプトダイアログ -->
-    <div id="customPromptModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[99999] p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
-            <div class="p-5 border-b border-slate-100 flex items-center gap-2.5 bg-indigo-50/50">
-                <div class="bg-indigo-50 text-indigo-600 p-2 rounded-lg">
-                    <i class="fa-solid fa-keyboard text-lg"></i>
+                            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                                <button type="button" onclick="closeEditModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition">キャンセル</button>
+                                <button type="submit" id="editModalSubmitBtn" class="text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition text-xs">変更を保存</button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
-                <h3 class="text-base font-bold text-slate-800" id="promptTitle">入力確認</h3>
-            </div>
-            <div class="p-5 space-y-3">
-                <div>
-                    <label id="promptMessage" class="text-xs text-slate-600 block mb-1">値を入力してください：</label>
-                    <input type="text" id="promptInput" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" autocomplete="off">
-                </div>
-                <!-- 新規作成時の日付ピッカー領域 -->
-                <div id="promptDateContainer" class="hidden">
-                    <label class="text-xs text-slate-600 block mb-1">日付（実施日）：</label>
-                    <input type="date" id="promptDateInput" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
-                </div>
-            </div>
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
-                <button id="promptCancelBtn" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold px-4 py-2 rounded-xl text-xs transition">
-                    キャンセル
-                </button>
-                <button id="promptOkBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm">
-                    決定
-                </button>
-            </div>
-        </div>
-    </div>
 
-    <!-- トースト通知 -->
-    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-[999999] text-xs">
-        <i id="toastIcon" class="fa-solid fa-circle-check text-indigo-400"></i>
-        <span id="toastMessage">メッセージ</span>
+                <!-- バックアップ・インポート モーダル (z-[100000]) -->
+                <div id="backupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[100000] p-4">
+                    <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50/50">
+                            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-database text-indigo-600"></i>
+                                データ移行（バックアップ／復元）
+                            </h3>
+                            <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 transition text-lg"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                        <div class="p-5 space-y-4 text-xs">
+                            <p class="text-slate-500 leading-relaxed">全ワークスペースのデータ退避や他端末への移行に利用します。復元を実行すると、現在のすべてのボードはバックアップの状態に上書きされます。</p>
+                            
+                            <!-- エクスポート -->
+                            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                <h4 class="font-bold text-slate-700 mb-2 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-download text-indigo-500"></i>バックアップファイルを保存
+                                </h4>
+                                <button onclick="exportDataJSON()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-4 py-2 rounded-xl transition inline-flex items-center gap-1.5 shadow-sm">
+                                    <i class="fa-solid fa-file-arrow-down"></i> バックアップを生成
+                                </button>
+                            </div>
+
+                            <!-- インポート -->
+                            <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                                <h4 class="font-bold text-slate-700 mb-2 flex items-center gap-1.5 text-red-600">
+                                    <i class="fa-solid fa-upload text-amber-500"></i>バックアップファイルから復元
+                                </h4>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <input type="file" id="importFile" accept=".json" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
+                                    <button onclick="importDataJSON()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all flex-shrink-0">
+                                        適用する
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                            <button onclick="closeBackupModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-4 py-2 rounded-xl text-xs transition">閉じる</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- カスタム確認ダイアログ (z-[100005]) -->
+                <div id="customConfirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[100005] p-4">
+                    <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
+                        <div class="p-5 border-b border-slate-100 flex items-center gap-2.5">
+                            <div class="bg-red-50 text-red-600 p-2 rounded-lg" id="confirmIconContainer">
+                                <i id="confirmIcon" class="fa-solid fa-triangle-exclamation text-lg animate-pulse"></i>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-800">実行確認</h3>
+                        </div>
+                        <div class="p-5 text-xs text-slate-600 whitespace-pre-wrap leading-relaxed" id="confirmMessage">
+                            確認メッセージを挿入します。
+                        </div>
+                        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                            <button id="confirmCancelBtn" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold px-4 py-2 rounded-xl text-xs transition">
+                                キャンセル
+                            </button>
+                            <button id="confirmOkBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm">
+                                実行する
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- カスタムプロンプトダイアログ (z-[100005]) -->
+                <div id="customPromptModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[100005] p-4">
+                    <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
+                        <div class="p-5 border-b border-slate-100 flex items-center gap-2.5 bg-indigo-50/50">
+                            <div class="bg-indigo-50 text-indigo-600 p-2 rounded-lg">
+                                <i class="fa-solid fa-keyboard text-lg"></i>
+                            </div>
+                            <h3 class="text-base font-bold text-slate-800" id="promptTitle">入力確認</h3>
+                        </div>
+                        <div class="p-5 space-y-3">
+                            <div>
+                                <label id="promptMessage" class="text-xs text-slate-600 block mb-1">値を入力してください：</label>
+                                <input type="text" id="promptInput" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" autocomplete="off">
+                            </div>
+                            <!-- 新規作成時の日付ピッカー領域 -->
+                            <div id="promptDateContainer" class="hidden">
+                                <label class="text-xs text-slate-600 block mb-1">日付（実施日）：</label>
+                                <input type="date" id="promptDateInput" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
+                            </div>
+                        </div>
+                        <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+                            <button id="promptCancelBtn" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold px-4 py-2 rounded-xl text-xs transition">
+                                キャンセル
+                            </button>
+                            <button id="promptOkBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition shadow-sm">
+                                決定
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- トースト通知 (z-[100010]) -->
+                <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-[100010] text-xs">
+                    <i id="toastIcon" class="fa-solid fa-circle-check text-indigo-400"></i>
+                    <span id="toastMessage">メッセージ</span>
+                </div>
+
+            </div>
+        </main>
     </div>
 
     <!-- フッター -->
@@ -1583,7 +1583,6 @@
             window.addEventListener('resize', adjustNotesOnResize);
         }
 
-        // 付箋同士の「最短の外周境界線距離」を精密に算出する関数
         function calculateRecordEdgeDistance(elA, recB) {
             const elB = document.getElementById(`note-${recB.id}`);
             if (!elA || !elB) return Infinity;
@@ -2137,7 +2136,6 @@
         // ========================================================
         // 🎨 手書きキャンバス(Canvas Drawing) 制御システム
         // ========================================================
-        
         function initDrawingCanvas() {
             dCanvas = document.getElementById("drawingCanvas");
             if (!dCanvas) return;
@@ -2539,13 +2537,6 @@
                 showToast("手書き描画をすべて消去しました。");
             }
         }
-
-        window.onload = function() {
-            loadAllData();
-            renderHomeScreen();
-            setupGlobalDragListeners();
-            setupFloatingMenuDelay();
-        };
 
         function escapeHtml(string) {
             if (typeof string !== 'string') return string;
