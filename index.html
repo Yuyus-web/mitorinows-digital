@@ -230,7 +230,7 @@
 
     <!-- バックアップモーダル -->
     <div id="backupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
             <div class="p-5 border-b flex justify-between items-center bg-indigo-50/50 flex-shrink-0">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-database text-indigo-600"></i>データ移行</h3>
                 <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -386,6 +386,7 @@
 
         initAuth();
 
+        // --- Core Realtime Listeners ---
         function setupRealtimeListeners() {
             if (!user) return;
 
@@ -752,7 +753,8 @@
                 if (draggedElement) {
                     const bR = document.getElementById("boardContainer").getBoundingClientRect(), cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX, cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                     let nl = cx - bR.left - dragOffsetX, nt = cy - bR.top - dragOffsetY;
-                    if (nl < 0) nl = 0; if (nt < 0) mt = 0; if (nl > bR.width - draggedElement.offsetWidth) nl = bR.width - draggedElement.offsetWidth; if (nt > bR.height - draggedElement.offsetHeight) nt = bR.height - draggedElement.offsetHeight;
+                    if (nl < 0) nl = 0; if (nt < 0) nt = 0;
+                    if (nl > bR.width - draggedElement.offsetWidth) nl = bR.width - draggedElement.offsetWidth; if (nt > bR.height - draggedElement.offsetHeight) nt = bR.height - draggedElement.offsetHeight;
                     draggedElement.style.left = `${(nl / bR.width) * 100}%`; draggedElement.style.top = `${(nt / bR.height) * 100}%`;
                     const r = allRecords.find(x => x.id === draggedElement.id.replace('note-', '')); if (r) checkStickySnapping(r, null);
                     drawConnections(); e.preventDefault();
@@ -1086,6 +1088,32 @@
             document.onclick = (e) => { if (!t.contains(e.target)) p.classList.remove("menu-panel-active"); }; t.onclick = (e) => { if (e.target.closest('#fullscreenMenuBtn')) { p.classList.toggle("menu-panel-active"); e.stopPropagation(); } };
         }
 
+        // --- Global Drag Logic Helper (Needed to handle coordinate translation) ---
+        function startDrag(e, id) {
+            if (opMode !== 'select') return;
+            const el = document.getElementById(id); if (!el) return;
+            draggedElement = el;
+            const bR = document.getElementById("boardContainer").getBoundingClientRect();
+            const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            dragOffsetX = cx - el.getBoundingClientRect().left;
+            dragOffsetY = cy - el.getBoundingClientRect().top;
+            el.style.zIndex = "100";
+            e.stopPropagation();
+        }
+
+        function startResize(e, id) {
+            const el = document.getElementById(id); if (!el) return;
+            resizingElement = el;
+            resizeStartWidth = el.offsetWidth;
+            resizeStartHeight = el.offsetHeight;
+            resizeStartX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            resizeStartY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            el.style.zIndex = "100";
+            e.stopPropagation();
+            e.preventDefault();
+        }
+
         // --- Global Bindings for HTML ---
         window.createNewWorkspace = createNewWorkspace;
         window.renameWorkspace = renameWorkspace;
@@ -1114,6 +1142,8 @@
         window.setPenWidth = setPenWidth;
         window.undoLastStroke = undoLastStroke;
         window.clearDrawingsWithConfirm = clearDrawingsWithConfirm;
+        window.startDrag = startDrag;
+        window.startResize = startResize;
 
         // --- Startup Initialization ---
         loadAllData();
