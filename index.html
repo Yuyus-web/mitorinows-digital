@@ -1,3 +1,4 @@
+```html
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -230,7 +231,7 @@
 
     <!-- バックアップモーダル -->
     <div id="backupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl flex flex-col overflow-hidden">
             <div class="p-5 border-b flex justify-between items-center bg-indigo-50/50 flex-shrink-0">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-database text-indigo-600"></i>データ移行</h3>
                 <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -1043,8 +1044,11 @@
             let c = "\ufeffID,Type,Text,ParentID\n"; workspaceRecords.forEach(r => c += `${r.id},${NOTE_THEMES[r.type].label},"${r.text.replace(/"/g, '""')}",${r.type === 'interpretation' ? r.connectedFactId || '' : r.connectedInterpId || ''}\n`);
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8" })); a.download = `${b.name}.csv`; a.click(); showToast("CSV出力完了");
         }
+        
+        // バックアップモーダルの表示・非表示制御
         function openBackupModal() { document.getElementById("backupModal").classList.replace("hidden", "flex"); }
-        function closeBackupModal() { document.getElementById("backupModal").classList.replace("hidden", "flex"); }
+        function closeBackupModal() { document.getElementById("backupModal").classList.replace("flex", "hidden"); }
+        
         function exportDataJSON() {
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ boards: allWorkspaces, records: allRecords, drawings: allDrawings, exportedAt: new Date().toISOString() })], { type: "application/json" })); a.download = `backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); showToast("バックアップ生成");
         }
@@ -1256,3 +1260,5 @@
     </script>
 </body>
 </html>
+
+```
