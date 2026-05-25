@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -307,8 +306,8 @@
          ======================================================= -->
     <!-- 新規付箋追加 共通モーダル -->
     <div id="recordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
-            <div id="modalHeader" class="p-5 border-b border-slate-100 flex justify-between items-center">
+        <div class="bg-white rounded-3xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
+            <div id="modalHeader" class="p-5 border-b border-slate-100 flex justify-between items-center flex-shrink-0">
                 <h3 id="modalTitle" class="text-base font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-pen-to-square"></i>
                     <span>付箋を追加</span>
@@ -317,15 +316,17 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <form id="recordForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="formType">
-                
-                <div id="modalInputContainer" class="p-4 rounded-xl border">
-                    <label id="modalInputLabel" class="block text-xs font-bold mb-1.5">内容</label>
-                    <textarea id="formText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:outline-none transition"></textarea>
+            <form id="recordForm" onsubmit="handleFormSubmit(event)" class="flex flex-col flex-grow overflow-hidden m-0">
+                <div class="p-6 space-y-4 overflow-y-auto scrollbar-none flex-grow">
+                    <input type="hidden" id="formType">
+                    
+                    <div id="modalInputContainer" class="p-4 rounded-xl border">
+                        <label id="modalInputLabel" class="block text-xs font-bold mb-1.5">内容</label>
+                        <textarea id="formText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-base sm:text-sm focus:ring-2 focus:outline-none transition"></textarea>
+                    </div>
                 </div>
 
-                <div class="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100">
+                <div class="flex items-center justify-end gap-2.5 p-5 border-t border-slate-100 flex-shrink-0">
                     <button type="button" onclick="closeAddModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition">
                         キャンセル
                     </button>
@@ -340,8 +341,8 @@
 
     <!-- 共通付箋編集モーダル -->
     <div id="editRecordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
-            <div id="editModalHeader" class="p-5 border-b border-slate-100 flex justify-between items-center">
+        <div class="bg-white rounded-3xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
+            <div id="editModalHeader" class="p-5 border-b border-slate-100 flex justify-between items-center flex-shrink-0">
                 <h3 id="editModalTitle" class="text-base font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-pen"></i>
                     <span>記録の編集</span>
@@ -350,16 +351,18 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <form id="editForm" onsubmit="handleEditFormSubmit(event)" class="p-6 space-y-4">
-                <input type="hidden" id="editRecordId">
-                <input type="hidden" id="editRecordType">
-                
-                <div id="editModalInputContainer" class="p-4 rounded-xl border">
-                    <label id="editModalInputLabel" class="block text-xs font-bold mb-1.5">内容</label>
-                    <textarea id="editText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-sm focus:ring-2 focus:outline-none transition"></textarea>
+            <form id="editForm" onsubmit="handleEditFormSubmit(event)" class="flex flex-col flex-grow overflow-hidden m-0">
+                <div class="p-6 space-y-4 overflow-y-auto scrollbar-none flex-grow">
+                    <input type="hidden" id="editRecordId">
+                    <input type="hidden" id="editRecordType">
+                    
+                    <div id="editModalInputContainer" class="p-4 rounded-xl border">
+                        <label id="editModalInputLabel" class="block text-xs font-bold mb-1.5">内容</label>
+                        <textarea id="editText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-base sm:text-sm focus:ring-2 focus:outline-none transition"></textarea>
+                    </div>
                 </div>
 
-                <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+                <div class="flex justify-end gap-2 p-5 border-t border-slate-100 flex-shrink-0">
                     <button type="button" onclick="closeEditModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs transition">キャンセル</button>
                     <button type="submit" id="editModalSubmitBtn" class="text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition text-xs">変更を保存</button>
                 </div>
@@ -369,15 +372,15 @@
 
     <!-- バックアップ・インポート モーダル -->
     <div id="backupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50/50">
+        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-indigo-50/50 flex-shrink-0">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
                     <i class="fa-solid fa-database text-indigo-600"></i>
                     データ移行（バックアップ／復元）
                 </h3>
                 <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 transition text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <div class="p-5 space-y-4 text-xs">
+            <div class="p-5 space-y-4 text-xs overflow-y-auto scrollbar-none flex-grow">
                 <p class="text-slate-500 leading-relaxed">全ワークスペースのデータ退避や他端末への移行に利用します。復元を実行すると、現在のすべてのボードはバックアップの状態に上書きされます。</p>
                 
                 <!-- エクスポート -->
@@ -395,15 +398,15 @@
                     <h4 class="font-bold text-slate-700 mb-2 flex items-center gap-1.5 text-red-600">
                         <i class="fa-solid fa-upload text-amber-500"></i>バックアップファイルから復元
                     </h4>
-                    <div class="flex items-center gap-2 mt-2">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-2">
                         <input type="file" id="importFile" accept=".json" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100">
-                        <button onclick="importDataJSON()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all flex-shrink-0">
+                        <button onclick="importDataJSON()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg transition-all flex-shrink-0 text-xs">
                             適用する
                         </button>
                     </div>
                 </div>
             </div>
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end flex-shrink-0">
                 <button onclick="closeBackupModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold px-4 py-2 rounded-xl text-xs transition">閉じる</button>
             </div>
         </div>
@@ -434,25 +437,25 @@
 
     <!-- カスタムプロンプトダイアログ -->
     <div id="customPromptModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-[99999] p-4">
-        <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
-            <div class="p-5 border-b border-slate-100 flex items-center gap-2.5 bg-indigo-50/50">
+        <div class="bg-white rounded-2xl w-full max-w-sm max-h-[calc(100vh-2rem)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden transform scale-95 transition-all duration-200">
+            <div class="p-5 border-b border-slate-100 flex items-center gap-2.5 bg-indigo-50/50 flex-shrink-0">
                 <div class="bg-indigo-50 text-indigo-600 p-2 rounded-lg">
                     <i class="fa-solid fa-keyboard text-lg"></i>
                 </div>
                 <h3 class="text-base font-bold text-slate-800" id="promptTitle">入力確認</h3>
             </div>
-            <div class="p-5 space-y-3">
+            <div class="p-5 space-y-3 overflow-y-auto scrollbar-none flex-grow">
                 <div>
                     <label id="promptMessage" class="text-xs text-slate-600 block mb-1">値を入力してください：</label>
-                    <input type="text" id="promptInput" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" autocomplete="off">
+                    <input type="text" id="promptInput" class="w-full box-border px-3 py-2 border border-slate-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition" autocomplete="off">
                 </div>
                 <!-- 新規作成時の日付ピッカー領域 -->
                 <div id="promptDateContainer" class="hidden">
                     <label class="text-xs text-slate-600 block mb-1">日付（実施日）：</label>
-                    <input type="date" id="promptDateInput" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition">
+                    <input type="date" id="promptDateInput" class="w-full box-border min-w-0 max-w-full px-3 py-2 border border-slate-200 rounded-xl text-base sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 transition bg-white text-slate-800 appearance-none [-webkit-appearance:none]">
                 </div>
             </div>
-            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2">
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-2 flex-shrink-0">
                 <button id="promptCancelBtn" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 font-bold px-4 py-2 rounded-xl text-xs transition">
                     キャンセル
                 </button>
@@ -1711,12 +1714,12 @@
         function toggleFullscreen() {
             const board = document.getElementById("boardContainer"); 
             const menu = document.getElementById("fullscreenMenu");
+            const docEl = document.documentElement;
             
             if (!document.fullscreenElement && !board.classList.contains("pseudo-fullscreen-active")) {
                 try {
-                    if (board.requestFullscreen) {
-                        board.requestFullscreen().then(() => {
-                            menu.classList.remove("hidden");
+                    if (docEl.requestFullscreen) {
+                        docEl.requestFullscreen().then(() => {
                             showToast("全画面表示モードを開始しました", "info");
                         }).catch(() => {
                             enablePseudoFullscreen();
@@ -1769,10 +1772,13 @@
 
         document.addEventListener("fullscreenchange", () => {
             const menu = document.getElementById("fullscreenMenu");
+            const board = document.getElementById("boardContainer");
             if (!document.fullscreenElement) {
                 if (menu) menu.classList.add("hidden");
+                if (board) board.classList.remove("pseudo-fullscreen-active");
             } else {
                 if (menu) menu.classList.remove("hidden");
+                if (board) board.classList.add("pseudo-fullscreen-active");
             }
             setTimeout(() => {
                 adjustNotesOnResize();
@@ -1864,21 +1870,21 @@
             const textarea = document.getElementById("formText");
 
             if (type === "fact") {
-                header.className = "p-5 border-b border-sky-100 flex justify-between items-center bg-sky-50";
+                header.className = "p-5 border-b border-sky-100 flex justify-between items-center bg-sky-50 flex-shrink-0";
                 submitBtn.className = "bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-md shadow-sky-100 transition flex items-center gap-2 text-xs";
                 inputContainer.className = "p-4 rounded-xl border border-sky-100 bg-sky-50/20";
                 label.className = "block text-xs font-bold text-sky-800 mb-1.5";
                 label.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> ① 客観的な事実の記録';
                 textarea.placeholder = "観察された事実言動を客観的に記録します。主観は含みません。";
             } else if (type === "interpretation") {
-                header.className = "p-5 border-b border-amber-100 flex justify-between items-center bg-amber-50";
+                header.className = "p-5 border-b border-amber-100 flex justify-between items-center bg-amber-50 flex-shrink-0";
                 submitBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-md shadow-amber-100 transition flex items-center gap-2 text-xs";
                 inputContainer.className = "p-4 rounded-xl border border-amber-100 bg-amber-50/20";
                 label.className = "block text-xs font-bold text-amber-800 mb-1.5";
                 label.innerHTML = '<i class="fa-solid fa-lightbulb"></i> ② 解釈の記録';
                 textarea.placeholder = "事実から推測される心理や背景、意図、アプローチの仮説を考察して記録します。";
             } else {
-                header.className = "p-5 border-b border-emerald-100 flex justify-between items-center bg-emerald-50";
+                header.className = "p-5 border-b border-emerald-100 flex justify-between items-center bg-emerald-50 flex-shrink-0";
                 submitBtn.className = "bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-6 rounded-xl shadow-md shadow-emerald-100 transition flex items-center gap-2 text-xs";
                 inputContainer.className = "p-4 rounded-xl border border-emerald-100 bg-emerald-50/20";
                 label.className = "block text-xs font-bold text-emerald-800 mb-1.5";
@@ -1949,19 +1955,19 @@
             const textarea = document.getElementById("editText");
 
             if (rec.type === "fact") {
-                header.className = "p-5 border-b border-sky-100 flex justify-between items-center bg-sky-50";
+                header.className = "p-5 border-b border-sky-100 flex justify-between items-center bg-sky-50 flex-shrink-0";
                 submitBtn.className = "bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition text-xs";
                 inputContainer.className = "p-4 rounded-xl border border-sky-100 bg-sky-50/20";
                 label.className = "block text-xs font-bold text-sky-800 mb-1.5";
                 label.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> 事実を修正';
             } else if (rec.type === "interpretation") {
-                header.className = "p-5 border-b border-amber-100 flex justify-between items-center bg-amber-50";
+                header.className = "p-5 border-b border-amber-100 flex justify-between items-center bg-amber-50 flex-shrink-0";
                 submitBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition text-xs";
                 inputContainer.className = "p-4 rounded-xl border border-amber-100 bg-amber-50/20";
                 label.className = "block text-xs font-bold text-amber-800 mb-1.5";
                 label.innerHTML = '<i class="fa-solid fa-lightbulb"></i> 解釈を修正';
             } else {
-                header.className = "p-5 border-b border-emerald-100 flex justify-between items-center bg-emerald-50";
+                header.className = "p-5 border-b border-emerald-100 flex justify-between items-center bg-emerald-50 flex-shrink-0";
                 submitBtn.className = "bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition text-xs";
                 inputContainer.className = "p-4 rounded-xl border border-emerald-100 bg-emerald-50/20";
                 label.className = "block text-xs font-bold text-emerald-800 mb-1.5";
@@ -2135,8 +2141,8 @@
         }
 
         // ========================================================
-        // 🎨 手書きキャンバス(Canvas Drawing) 制御システム
-        // ========================================================
+         // 🎨 手書きキャンバス(Canvas Drawing) 制御システム
+         // ========================================================
         
         function initDrawingCanvas() {
             dCanvas = document.getElementById("drawingCanvas");
