@@ -311,7 +311,11 @@
         let draggedElement = null, dragOffsetX = 0, dragOffsetY = 0;
         let resizingElement = null, resizeStartWidth = 0, resizeStartHeight = 0, resizeStartX = 0, resizeStartY = 0;
         let tempConnectionFactId = null, tempConnectionInterpId = null, tempConnectionImproveId = null;
-        let activeTempFactId = null, activeTempInterpId = null, activeTempImproveId = null;
+        
+        // ドラッグセッション中の一時引き剥がし管理フラグ
+        let isDraggedInterpDisconnected = false;
+        let isDraggedImproveDisconnected = false;
+
         let dCanvas = null, dCtx = null, isDrawing = false, opMode = 'select', penColor = '#1e293b', penWidth = 6;
         let currentStrokePoints = [], lastEraserCoords = null;
         let menuDelayTimer = null;
@@ -707,30 +711,90 @@
         }
 
         // --- Interaction Snapping & Drag ---
-        function checkStickySnapping(draggedRec, activeSpace) {
+        function checkStickySnapping(draggedRec) {
             const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
-            workspaceRecords.forEach(r => {
-                if (r.type === "interpretation" && r.connectedFactId) if (r.id === draggedRec.id || r.connectedFactId === draggedRec.id) r.tempDisconnectFact = (calculateEdgeDist(r, workspaceRecords.find(x => x.id === r.connectedFactId)) >= DISTANCE_5CM_PX);
-                if (r.type === "improvement" && r.connectedInterpId) if (r.id === draggedRec.id || r.connectedInterpId === draggedRec.id) r.tempDisconnectInterp = (calculateEdgeDist(r, workspaceRecords.find(x => x.id === r.connectedInterpId)) >= DISTANCE_5CM_PX);
-            });
-            tempConnectionFactId = null; tempConnectionInterpId = null; tempConnectionImproveId = null;
             
-            const attemptSnap = (tgtType, activeTempIdVar, setTempIdFn) => {
-                let nearest = null, minDist = Infinity;
-                workspaceRecords.forEach(o => { if (o.type === tgtType) { const d = calculateEdgeDist(draggedRec, o); if (d < minDist) { minDist = d; nearest = o; } } });
-                if (nearest) {
-                    if (activeTempIdVar === nearest.id) { if (minDist < DISTANCE_5CM_PX) setTempIdFn(nearest.id); else activeTempIdVar = null; }
-                    else if (minDist < DISTANCE_3CM_PX) { activeTempIdVar = nearest.id; setTempIdFn(nearest.id); }
-                } else activeTempIdVar = null;
-                return activeTempIdVar;
-            };
+            // 1. 既存の結合からの「引き剥がし（距離190px以上）」判定
+            // 改善案(improvement)の場合
+            if (draggedRec.type === "improvement" && draggedRec.connectedInterpId) {
+                const targetInterp = workspaceRecords.find(x => x.id === draggedRec.connectedInterpId);
+                if (targetInterp) {
+                    const dist = calculateEdgeDist(draggedRec, targetInterp);
+                    if (dist >= DISTANCE_5CM_PX) {
+                        isDraggedImproveDisconnected = true;
+                    } else if (dist < DISTANCE_3CM_PX) {
+                        isDraggedImproveDisconnected = false; // 再接近したら切断をキャンセル
+                    }
+                }
+            }
+            
+            // 解釈(interpretation)の場合
+            if (draggedRec.type === "interpretation" && draggedRec.connectedFactId) {
+                const targetFact = workspaceRecords.find(x => x.id === draggedRec.connectedFactId);
+                if (targetFact) {
+                    const dist = calculateEdgeDist(draggedRec, targetFact);
+                    if (dist >= DISTANCE_5CM_PX) {
+                        isDraggedInterpDisconnected = true;
+                    } else if (dist < DISTANCE_3CM_PX) {
+                        isDraggedInterpDisconnected = false;
+                    }
+                }
+            }
 
+            // ドラッグ中スナップ用の仮候補をリセット
+            tempConnectionFactId = null;
+            tempConnectionInterpId = null;
+            tempConnectionImproveId = null;
+
+            // 2. 他の付箋への「新規吸着（距離114px以内）」判定
+            // 改善案(improvement)がドラッグ中のとき：解釈(interpretation)へ吸着する
+            if (draggedRec.type === "improvement") {
+                // 結合していない、または引き剥がされているときのみ吸着
+                if (!draggedRec.connectedInterpId || isDraggedImproveDisconnected) {
+                    let nearest = null, minDist = Infinity;
+                    workspaceRecords.forEach(o => {
+                        if (o.type === "interpretation") {
+                            const d = calculateEdgeDist(draggedRec, o);
+                            if (d < minDist) { minDist = d; nearest = o; }
+                        }
+                    });
+                    if (nearest && minDist < DISTANCE_3CM_PX) {
+                        tempConnectionInterpId = nearest.id;
+                    }
+                }
+            }
+
+            // 解釈(interpretation)がドラッグ中のとき
             if (draggedRec.type === "interpretation") {
-                if (!draggedRec.tempDisconnectFact && !draggedRec.connectedFactId) activeTempFactId = attemptSnap('fact', activeTempFactId, id => tempConnectionFactId = id);
-                let nearestImp = null, minImp = Infinity; workspaceRecords.forEach(o => { if (o.type === "improvement" && !o.tempDisconnectInterp && !o.connectedInterpId) { const d = calculateEdgeDist(draggedRec, o); if (d < minImp) { minImp = d; nearestImp = o; } } });
-                if (nearestImp) { if (activeTempImproveId === nearestImp.id) { if (minImp < DISTANCE_5CM_PX) tempConnectionImproveId = nearestImp.id; else activeTempImproveId = null; } else if (minImp < DISTANCE_3CM_PX) { activeTempImproveId = nearestImp.id; tempConnectionImproveId = nearestImp.id; } } else activeTempImproveId = null;
-            } else if (draggedRec.type === "improvement" && !draggedRec.tempDisconnectInterp && !draggedRec.connectedInterpId) {
-                activeTempInterpId = attemptSnap('interpretation', activeTempInterpId, id => tempConnectionInterpId = id);
+                // a. 事実(fact)へ吸着する
+                if (!draggedRec.connectedFactId || isDraggedInterpDisconnected) {
+                    let nearestFact = null, minDistFact = Infinity;
+                    workspaceRecords.forEach(o => {
+                        if (o.type === "fact") {
+                            const d = calculateEdgeDist(draggedRec, o);
+                            if (d < minDistFact) { minDistFact = d; nearestFact = o; }
+                        }
+                    });
+                    if (nearestFact && minDistFact < DISTANCE_3CM_PX) {
+                        tempConnectionFactId = nearestFact.id;
+                    }
+                }
+                
+                // b. 改善案(improvement)から吸着される
+                let nearestImp = null, minDistImp = Infinity;
+                workspaceRecords.forEach(o => {
+                    if (o.type === "improvement") {
+                        const isConnectedToMe = o.connectedInterpId === draggedRec.id;
+                        const canSnap = !o.connectedInterpId || (isConnectedToMe && isDraggedImproveDisconnected);
+                        if (canSnap) {
+                            const d = calculateEdgeDist(draggedRec, o);
+                            if (d < minDistImp) { minDistImp = d; nearestImp = o; }
+                        }
+                    }
+                });
+                if (nearestImp && minDistImp < DISTANCE_3CM_PX) {
+                    tempConnectionImproveId = nearestImp.id;
+                }
             }
         }
 
@@ -756,7 +820,9 @@
                     if (nl < 0) nl = 0; if (nt < 0) nt = 0;
                     if (nl > bR.width - draggedElement.offsetWidth) nl = bR.width - draggedElement.offsetWidth; if (nt > bR.height - draggedElement.offsetHeight) nt = bR.height - draggedElement.offsetHeight;
                     draggedElement.style.left = `${(nl / bR.width) * 100}%`; draggedElement.style.top = `${(nt / bR.height) * 100}%`;
-                    const r = allRecords.find(x => x.id === draggedElement.id.replace('note-', '')); if (r) checkStickySnapping(r, null);
+                    
+                    const r = allRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
+                    if (r) checkStickySnapping(r);
                     drawConnections(); e.preventDefault();
                 }
             };
@@ -772,19 +838,31 @@
                         try {
                             const updates = { x: parseFloat(draggedElement.style.left), y: parseFloat(draggedElement.style.top) };
                             const batch = writeBatch(db);
-                            
-                            allRecords.forEach(o => {
-                                if (o.workspaceId === currentWorkspaceId) {
-                                    if (o.type === "interpretation" && o.tempDisconnectFact) { batch.update(doc(recordsCol, o.id), { connectedFactId: null }); o.tempDisconnectFact = false; }
-                                    if (o.type === "improvement" && o.tempDisconnectInterp) { batch.update(doc(recordsCol, o.id), { connectedInterpId: null }); o.tempDisconnectInterp = false; }
-                                }
-                            });
 
+                            // a. 既存接続の「引き剥がし」確定処理（新吸着がない場合、接続解除）
+                            if (r.type === "improvement" && isDraggedImproveDisconnected && !tempConnectionInterpId) {
+                                updates.connectedInterpId = null;
+                                showToast("解釈とのつながりを解除しました", "info");
+                            }
+                            if (r.type === "interpretation" && isDraggedInterpDisconnected && !tempConnectionFactId) {
+                                updates.connectedFactId = null;
+                                showToast("事実とのつながりを解除しました", "info");
+                            }
+
+                            // b. 「新吸着」確定処理
+                            if (r.type === "improvement" && tempConnectionInterpId) {
+                                updates.connectedInterpId = tempConnectionInterpId;
+                                showToast("解釈と結びつけました", "success");
+                            }
                             if (r.type === "interpretation") {
-                                if (tempConnectionFactId) { updates.connectedFactId = tempConnectionFactId; showToast("事実と結びつけました", "success"); }
-                                if (tempConnectionImproveId) { batch.update(doc(recordsCol, tempConnectionImproveId), { connectedInterpId: r.id }); showToast("改善案と結びつけました", "success"); }
-                            } else if (r.type === "improvement" && tempConnectionInterpId) {
-                                updates.connectedInterpId = tempConnectionInterpId; showToast("解釈と結びつけました", "success");
+                                if (tempConnectionFactId) {
+                                    updates.connectedFactId = tempConnectionFactId;
+                                    showToast("事実と結びつけました", "success");
+                                }
+                                if (tempConnectionImproveId) {
+                                    batch.update(doc(recordsCol, tempConnectionImproveId), { connectedInterpId: r.id });
+                                    showToast("改善案と結びつけました", "success");
+                                }
                             }
 
                             batch.update(doc(recordsCol, r.id), updates);
@@ -795,7 +873,10 @@
                         }
                     }
                     draggedElement.style.zIndex = "10"; draggedElement = null;
-                    tempConnectionFactId = null; tempConnectionInterpId = null; tempConnectionImproveId = null; activeTempFactId = null; activeTempInterpId = null; activeTempImproveId = null;
+                    
+                    // ドラッグセッション一時変数のリセット
+                    tempConnectionFactId = null; tempConnectionInterpId = null; tempConnectionImproveId = null;
+                    isDraggedInterpDisconnected = false; isDraggedImproveDisconnected = false;
                 }
             };
             document.addEventListener('mousemove', move); document.addEventListener('mouseup', end); document.addEventListener('touchmove', move, { passive: false }); document.addEventListener('touchend', end);
@@ -834,12 +915,26 @@
             const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
             
             workspaceRecords.forEach(r => {
-                if (r.type === "interpretation" && r.connectedFactId) { const f = workspaceRecords.find(x => x.id === r.connectedFactId); if (f) drawSingleLine(svg, r, f, bR, r.tempDisconnectFact ? "#ef4444" : "#f59e0b", r.tempDisconnectFact); }
-                if (r.type === "improvement" && r.connectedInterpId) { const i = workspaceRecords.find(x => x.id === r.connectedInterpId); if (i) drawSingleLine(svg, r, i, bR, r.tempDisconnectInterp ? "#ef4444" : "#10b981", r.tempDisconnectInterp); }
+                if (r.type === "interpretation" && r.connectedFactId) {
+                    const f = workspaceRecords.find(x => x.id === r.connectedFactId);
+                    if (f) {
+                        // ドラッグして引き剥がされている状態は「赤ライン」にして表現
+                        const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedInterpDisconnected);
+                        drawSingleLine(svg, r, f, bR, isDisconnected ? "#ef4444" : "#f59e0b", isDisconnected);
+                    }
+                }
+                if (r.type === "improvement" && r.connectedInterpId) {
+                    const i = workspaceRecords.find(x => x.id === r.connectedInterpId);
+                    if (i) {
+                        const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedImproveDisconnected);
+                        drawSingleLine(svg, r, i, bR, isDisconnected ? "#ef4444" : "#10b981", isDisconnected);
+                    }
+                }
             });
             if (draggedElement) {
                 const r = workspaceRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
                 if (r) {
+                    // 吸着時のガイドライン（点線）
                     if (tempConnectionFactId) { const t = workspaceRecords.find(x => x.id === tempConnectionFactId); if (t) drawSingleLine(svg, r, t, bR, "#f59e0b", true); }
                     if (tempConnectionImproveId) { const t = workspaceRecords.find(x => x.id === tempConnectionImproveId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
                     if (tempConnectionInterpId && r.type === "improvement") { const t = workspaceRecords.find(x => x.id === tempConnectionInterpId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
@@ -1099,6 +1194,14 @@
             dragOffsetX = cx - el.getBoundingClientRect().left;
             dragOffsetY = cy - el.getBoundingClientRect().top;
             el.style.zIndex = "100";
+
+            // 新規ドラッグセッション開始時に一時フラグをすべてクリーンに初期化
+            isDraggedInterpDisconnected = false;
+            isDraggedImproveDisconnected = false;
+            tempConnectionFactId = null;
+            tempConnectionInterpId = null;
+            tempConnectionImproveId = null;
+
             e.stopPropagation();
         }
 
