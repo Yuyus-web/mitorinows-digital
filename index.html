@@ -599,7 +599,7 @@
 
                 modal.classList.remove("hidden");
                 modal.classList.add("flex");
-                setTimeout(() => inputEl.focus(), 100);
+                inputEl.focus(); // フルスクリーン自動解除を防ぐため、完全同期で実行
 
                 const handleOk = () => {
                     const value = inputEl.value.trim();
@@ -1716,19 +1716,27 @@
             const menu = document.getElementById("fullscreenMenu");
             const docEl = document.documentElement;
             
+            // 自身が iframe の中で動いているか、またはフルスクリーンAPIが不安定な環境か判定
+            const isIframe = window.self !== window.top;
+            
             if (!document.fullscreenElement && !board.classList.contains("pseudo-fullscreen-active")) {
-                try {
-                    if (docEl.requestFullscreen) {
-                        docEl.requestFullscreen().then(() => {
-                            showToast("全画面表示モードを開始しました", "info");
-                        }).catch(() => {
+                if (isIframe) {
+                    // iframe内（GitHubプレビュー等）では、ブラウザ制限による解除を防ぐため、最初から極めて安定した疑似全画面（CSS全画面）を使用
+                    enablePseudoFullscreen();
+                } else {
+                    try {
+                        if (docEl.requestFullscreen) {
+                            docEl.requestFullscreen().then(() => {
+                                showToast("全画面表示モードを開始しました", "info");
+                            }).catch(() => {
+                                enablePseudoFullscreen();
+                            });
+                        } else {
                             enablePseudoFullscreen();
-                        });
-                    } else {
+                        }
+                    } catch (err) {
                         enablePseudoFullscreen();
                     }
-                } catch (err) {
-                    enablePseudoFullscreen();
                 }
             } else {
                 if (document.fullscreenElement) {
@@ -1895,7 +1903,7 @@
             const modal = document.getElementById("recordModal");
             modal.classList.remove("hidden");
             modal.classList.add("flex");
-            setTimeout(() => textarea.focus(), 150);
+            textarea.focus(); // フルスクリーン自動解除バグを同期処理で徹底ガード
         }
 
         function closeAddModal() {
@@ -1977,7 +1985,7 @@
             const modal = document.getElementById("editRecordModal");
             modal.classList.remove("hidden");
             modal.classList.add("flex");
-            setTimeout(() => textarea.focus(), 150);
+            textarea.focus(); // 同期フォーカスでブラウザの全画面自動解除を完全に防止
         }
 
         function closeEditModal() {
