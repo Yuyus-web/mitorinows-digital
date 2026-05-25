@@ -1049,8 +1049,8 @@
                     rec.x = 10 + (index * 8) % 55;
                     rec.y = 12 + (index * 10) % 45;
                 }
-                const width = rec.w || 125;
-                const height = rec.h || 108;
+                const width = rec.w || 94;
+                const height = rec.h || 81;
 
                 const card = document.createElement("div");
                 card.id = `note-${rec.id}`;
@@ -1180,7 +1180,7 @@
 
             if (maxAllowedWidth <= 0 || maxAllowedHeight <= 0) return;
 
-            let minSize = 6;
+            let minSize = 4;
             let maxSize = 24;
             let optimalSize = minSize;
 
@@ -1287,8 +1287,8 @@
                     let newWidth = resizeStartWidth + deltaX;
                     let newHeight = resizeStartHeight + deltaY;
 
-                    if (newWidth < 75) newWidth = 75;
-                    if (newHeight < 60) newHeight = 60;
+                    if (newWidth < 55) newWidth = 55;
+                    if (newHeight < 45) newHeight = 45;
 
                     const board = document.getElementById("boardContainer");
                     const boardRect = board.getBoundingClientRect();
@@ -1676,7 +1676,7 @@
             const paddingX = 4;
             const paddingY = 5;
             const cardWidthPercent = (100 - (paddingX * (cols + 1))) / cols;
-            const cardHeightPercent = 18; 
+            const cardHeightPercent = 14; 
 
             const syncTimer = setInterval(() => {
                 drawConnections();
@@ -1952,242 +1952,6 @@
             const modal = document.getElementById("recordModal");
             modal.classList.remove("flex");
             modal.classList.add("hidden");
-        }
-
-        function handleFormSubmit(e) {
-            e.preventDefault();
-
-            const type = document.getElementById("formType").value;
-            const text = document.getElementById("formText").value.trim();
-
-            if (!text) {
-                showToast("内容を入力してください。", "error");
-                return;
-            }
-
-            const activeWorkspace = boards.find(b => b.id === currentWorkspaceId);
-            if (!activeWorkspace) return;
-
-            const newRec = {
-                id: "rec-" + Date.now(),
-                type: type,
-                text: text,
-                x: 20 + Math.random() * 25,
-                y: 18 + Math.random() * 25,
-                w: 125, 
-                h: 108  
-            };
-
-            activeWorkspace.records.push(newRec);
-            activeWorkspace.updatedAt = new Date().toISOString();
-            
-            saveAllData();
-            renderBoards();
-            closeAddModal();
-            showToast("新しい付箋をボードに貼り付けました！");
-        }
-
-        function openEditRecord(recordId) {
-            const activeWorkspace = boards.find(b => b.id === currentWorkspaceId);
-            if (!activeWorkspace) return;
-
-            const rec = activeWorkspace.records.find(r => r.id === recordId);
-            if (!rec) return;
-
-            document.getElementById("editRecordId").value = rec.id;
-            document.getElementById("editRecordType").value = rec.type;
-            document.getElementById("editText").value = rec.text;
-
-            const header = document.getElementById("editModalHeader");
-            const submitBtn = document.getElementById("editModalSubmitBtn");
-            const inputContainer = document.getElementById("editModalInputContainer");
-            const label = document.getElementById("editModalInputLabel");
-            const textarea = document.getElementById("editText");
-
-            if (rec.type === "fact") {
-                header.className = "p-5 border-b border-sky-100 flex justify-between items-center bg-sky-50 flex-shrink-0";
-                submitBtn.className = "bg-sky-500 hover:bg-sky-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition text-xs";
-                inputContainer.className = "p-4 rounded-xl border border-sky-100 bg-sky-50/20";
-                label.className = "block text-xs font-bold text-sky-800 mb-1.5";
-                label.innerHTML = '<i class="fa-solid fa-magnifying-glass"></i> 事実を修正';
-            } else if (rec.type === "interpretation") {
-                header.className = "p-5 border-b border-amber-100 flex justify-between items-center bg-amber-50 flex-shrink-0";
-                submitBtn.className = "bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition text-xs";
-                inputContainer.className = "p-4 rounded-xl border border-amber-100 bg-amber-50/20";
-                label.className = "block text-xs font-bold text-amber-800 mb-1.5";
-                label.innerHTML = '<i class="fa-solid fa-lightbulb"></i> 解釈を修正';
-            } else {
-                header.className = "p-5 border-b border-emerald-100 flex justify-between items-center bg-emerald-50 flex-shrink-0";
-                submitBtn.className = "bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2.5 px-5 rounded-xl shadow-md transition text-xs";
-                inputContainer.className = "p-4 rounded-xl border border-emerald-100 bg-emerald-50/20";
-                label.className = "block text-xs font-bold text-emerald-800 mb-1.5";
-                label.innerHTML = '<i class="fa-solid fa-seedling"></i> 改善支援策を修正';
-            }
-
-            const modal = document.getElementById("editRecordModal");
-            modal.classList.remove("hidden");
-            modal.classList.add("flex");
-            // フルスクリーン自動解除バグを防ぐため、自動フォーカス（focus）は行いません。
-        }
-
-        function closeEditModal() {
-            const modal = document.getElementById("editRecordModal");
-            modal.classList.remove("flex");
-            modal.classList.add("hidden");
-        }
-
-        function handleEditFormSubmit(e) {
-            e.preventDefault();
-
-            const id = document.getElementById("editRecordId").value;
-            const text = document.getElementById("editText").value.trim();
-
-            if (!text) {
-                showToast("内容を入力してください。", "error");
-                return;
-            }
-
-            const activeWorkspace = boards.find(b => b.id === currentWorkspaceId);
-            if (!activeWorkspace) return;
-
-            const rec = activeWorkspace.records.find(r => r.id === id);
-            if (rec) {
-                rec.text = text;
-                activeWorkspace.updatedAt = new Date().toISOString();
-                saveAllData();
-                renderBoards();
-                closeEditModal();
-                showToast("付箋の内容を修正しました。");
-            }
-        }
-
-        async function deleteRecordWithConfirm(recordId) {
-            const confirmed = await showCustomConfirm("この付箋データをボードから完全に削除してもよろしいですか？", true);
-            if (confirmed) {
-                const activeWorkspace = boards.find(b => b.id === currentWorkspaceId);
-                if (activeWorkspace) {
-                    const deletedRec = activeWorkspace.records.find(r => r.id === recordId);
-                    
-                    if (deletedRec) {
-                        if (deletedRec.type === "fact") {
-                            activeWorkspace.records.forEach(r => {
-                                if (r.type === "interpretation" && r.connectedFactId === recordId) {
-                                    r.connectedFactId = null;
-                                }
-                            });
-                        } else if (deletedRec.type === "interpretation") {
-                            activeWorkspace.records.forEach(r => {
-                                if (r.type === "improvement" && r.connectedInterpId === recordId) {
-                                    r.connectedInterpId = null;
-                                }
-                            });
-                        }
-                    }
-
-                    activeWorkspace.records = activeWorkspace.records.filter(r => r.id !== recordId);
-                    activeWorkspace.updatedAt = new Date().toISOString();
-                    saveAllData();
-                    renderBoards();
-                    showToast("付箋を削除しました。");
-                }
-            }
-        }
-
-        function openBackupModal() {
-            document.getElementById("backupModal").classList.remove("hidden");
-            document.getElementById("backupModal").classList.add("flex");
-        }
-
-        function closeBackupModal() {
-            document.getElementById("backupModal").classList.remove("flex");
-            document.getElementById("backupModal").classList.add("hidden");
-        }
-
-        function exportDataJSON() {
-            const dataPackage = {
-                boards: boards,
-                exportedAt: new Date().toISOString()
-            };
-
-            const jsonStr = JSON.stringify(dataPackage, null, 2);
-            const blob = new Blob([jsonStr], { type: "application/json" });
-            const link = document.createElement("a");
-            const dateStr = new Date().toISOString().split('T')[0];
-
-            link.href = URL.createObjectURL(blob);
-            link.setAttribute("download", `見取りワークスペース_バックアップ_${dateStr}.json`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            showToast("バックアップ用JSONファイルをダウンロードしました。");
-        }
-
-        function importDataJSON() {
-            const fileInput = document.getElementById("importFile");
-            if (!fileInput.files || fileInput.files.length === 0) {
-                showToast("復元するバックアップファイルを選択してください。", "error");
-                return;
-            }
-
-            const file = fileInput.files[0];
-            const reader = new FileReader();
-
-            reader.onload = async function(e) {
-                try {
-                    const imported = JSON.parse(e.target.result);
-                    
-                    if (!imported.boards) {
-                        throw new Error("フォーマットの構造が一致しません。");
-                    }
-
-                    const confirmed = await showCustomConfirm("インポートを実行して、全データをバックアップ時の状態に置き換えますか？", true);
-                    if (confirmed) {
-                        boards = imported.boards;
-                        // Drawings配列の最低限の保証
-                        boards.forEach(b => b.drawings = b.drawings || []);
-                        saveAllData();
-                        
-                        goBackToHome();
-                        closeBackupModal();
-                        showToast("データの復元が完了しました！");
-                    }
-                } catch (err) {
-                    showToast("バックアップ解析に失敗。適切なJSONデータかお確かめください。", "error");
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        let menuDelayTimer = null;
-
-        function setupFloatingMenuDelay() {
-            const trigger = document.getElementById("fullscreenMenu");
-            const panel = document.getElementById("fullscreenMenuPanel");
-            if (!trigger || !panel) return;
-
-            trigger.addEventListener("mouseenter", () => {
-                if (menuDelayTimer) clearTimeout(menuDelayTimer);
-                panel.classList.add("menu-panel-active");
-            });
-
-            trigger.addEventListener("mouseleave", () => {
-                menuDelayTimer = setTimeout(() => {
-                    panel.classList.remove("menu-panel-active");
-                }, 800); 
-            });
-
-            trigger.addEventListener("click", (e) => {
-                if (e.target.closest('#fullscreenMenuBtn')) {
-                    panel.classList.toggle("menu-panel-active");
-                    e.stopPropagation();
-                }
-            });
-
-            document.addEventListener("click", (e) => {
-                if (!trigger.contains(e.target)) {
-                    panel.classList.remove("menu-panel-active");
-                }
-            });
         }
 
         // ========================================================
