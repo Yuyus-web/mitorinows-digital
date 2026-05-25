@@ -1,3 +1,4 @@
+```html
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -58,9 +59,9 @@
             border-radius: 0 !important;
             margin: 0 !important;
             overflow: hidden !important;
-        }
-        :fullscreen {
-            background-color: #ffffff !important;
+            /* モバイルブラウザでの引っ張り更新やバウンス等を完全に防止 */
+            overscroll-behavior: none !important;
+            touch-action: none !important;
         }
         /* 全画面フロートパネル表示アニメーション */
         .menu-panel-active {
@@ -268,32 +269,40 @@
                 </div>
 
                 <!-- ========================================================
-                     全画面表示中限定：右上縦3点リーダーフローティングメニュー
+                     全画面表示中限定：右上フローティングコントロール（✖️ボタンと3点リーダー）
                      ======================================================== -->
-                <div id="fullscreenMenu" class="hidden absolute top-4 right-4 z-[99999] group">
-                    <button id="fullscreenMenuBtn" class="bg-slate-800 text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-700 transition" title="全画面時操作メニュー">
-                        <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
+                <div id="fullscreenMenu" class="hidden absolute top-4 right-4 z-[99999] flex items-center gap-2">
+                    <!-- 直接全画面を閉じるための ✖️ ボタン -->
+                    <button onclick="disablePseudoFullscreen()" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center hover:bg-red-700 transition-all active:scale-95" title="全画面表示の終了">
+                        <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                     
-                    <div id="fullscreenMenuPanel" class="absolute right-0 top-14 bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 w-52 flex flex-col gap-2.5 transition-all duration-300 opacity-0 transform -translate-y-4 scale-95 pointer-events-none">
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-1">付箋を貼る</h4>
-                        <button onclick="openAddModal('fact')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-sky-50 text-sky-700 transition">
-                            <i class="fa-solid fa-square-plus"></i>事実付箋を追加
-                        </button>
-                        <button onclick="openAddModal('interpretation')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-amber-50 text-amber-700 transition">
-                            <i class="fa-solid fa-square-plus"></i>解釈付箋を追加
-                        </button>
-                        <button onclick="openAddModal('improvement')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-emerald-50 text-emerald-700 transition">
-                            <i class="fa-solid fa-square-plus"></i>改善案付箋を追加
+                    <!-- 3点リーダーメニュー -->
+                    <div class="relative group">
+                        <button id="fullscreenMenuBtn" class="bg-slate-800 text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-700 transition" title="全画面時操作メニュー">
+                            <i class="fa-solid fa-ellipsis-vertical text-lg"></i>
                         </button>
                         
-                        <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mt-1.5 mb-1">ボード操作</h4>
-                        <button onclick="alignStickyNotes()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 text-slate-700 transition">
-                            <i class="fa-solid fa-table-cells-large"></i>きれいに整列
-                        </button>
-                        <button onclick="toggleFullscreen()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-red-50 text-red-600 transition">
-                            <i class="fa-solid fa-compress"></i>全画面の終了
-                        </button>
+                        <div id="fullscreenMenuPanel" class="absolute right-0 top-14 bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 w-52 flex flex-col gap-2.5 transition-all duration-300 opacity-0 transform -translate-y-4 scale-95 pointer-events-none">
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mb-1">付箋を貼る</h4>
+                            <button onclick="openAddModal('fact')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-sky-50 text-sky-700 transition">
+                                <i class="fa-solid fa-square-plus"></i>事実付箋を追加
+                            </button>
+                            <button onclick="openAddModal('interpretation')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-amber-50 text-amber-700 transition">
+                                <i class="fa-solid fa-square-plus"></i>解釈付箋を追加
+                            </button>
+                            <button onclick="openAddModal('improvement')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-emerald-50 text-emerald-700 transition">
+                                <i class="fa-solid fa-square-plus"></i>改善案付箋を追加
+                            </button>
+                            
+                            <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-slate-100 pb-1.5 mt-1.5 mb-1">ボード操作</h4>
+                            <button onclick="alignStickyNotes()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 text-slate-700 transition">
+                                <i class="fa-solid fa-table-cells-large"></i>きれいに整列
+                            </button>
+                            <button onclick="disablePseudoFullscreen()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-red-50 text-red-600 transition">
+                                <i class="fa-solid fa-compress"></i>全画面の終了
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -853,7 +862,7 @@
             document.getElementById("boardScreen").classList.remove("hidden");
             document.getElementById("boardScreen").classList.add("flex");
 
-            // 描画関連のDOM初期化
+            // 描画関連 of DOM初期化
             initDrawingCanvas();
 
             renderBoards();
@@ -1711,37 +1720,14 @@
             showToast("付箋をきれいに整列しました。");
         }
 
+        // ========================================================
+        // 🖥️ 全画面表示制御ロジック (CSSベース疑似フルスクリーン一本化)
+        // ========================================================
         function toggleFullscreen() {
             const board = document.getElementById("boardContainer"); 
-            const menu = document.getElementById("fullscreenMenu");
-            const docEl = document.documentElement;
-            
-            // 自身が iframe の中で動いているか、またはフルスクリーンAPIが不安定な環境か判定
-            const isIframe = window.self !== window.top;
-            
-            if (!document.fullscreenElement && !board.classList.contains("pseudo-fullscreen-active")) {
-                if (isIframe) {
-                    // iframe内（GitHubプレビュー等）では、ブラウザ制限による解除を防ぐため、最初から極めて安定した疑似全画面（CSS全画面）を使用
-                    enablePseudoFullscreen();
-                } else {
-                    try {
-                        if (docEl.requestFullscreen) {
-                            docEl.requestFullscreen().then(() => {
-                                showToast("全画面表示モードを開始しました", "info");
-                            }).catch(() => {
-                                enablePseudoFullscreen();
-                            });
-                        } else {
-                            enablePseudoFullscreen();
-                        }
-                    } catch (err) {
-                        enablePseudoFullscreen();
-                    }
-                }
+            if (!board.classList.contains("pseudo-fullscreen-active")) {
+                enablePseudoFullscreen();
             } else {
-                if (document.fullscreenElement) {
-                    document.exitFullscreen();
-                }
                 disablePseudoFullscreen();
             }
         }
@@ -1749,8 +1735,19 @@
         function enablePseudoFullscreen() {
             const board = document.getElementById("boardContainer");
             const menu = document.getElementById("fullscreenMenu");
-            if (board) board.classList.add("pseudo-fullscreen-active");
+            if (board) {
+                board.classList.add("pseudo-fullscreen-active");
+                // 疑似全画面表示中のタッチ更新（下スワイプ等）を防ぐため、ベースクラスにprevent-panをあてる
+                board.classList.add("prevent-pan");
+            }
             if (menu) menu.classList.remove("hidden");
+            
+            // htmlおよびbodyの更新ジェスチャー・バウンスを徹底防止
+            document.documentElement.style.overflow = 'hidden';
+            document.documentElement.style.overscrollBehavior = 'none';
+            document.body.style.overflow = 'hidden';
+            document.body.style.overscrollBehavior = 'none';
+
             showToast("全画面表示を開始しました", "info");
             setTimeout(() => {
                 adjustNotesOnResize();
@@ -1761,14 +1758,28 @@
         function disablePseudoFullscreen() {
             const board = document.getElementById("boardContainer");
             const menu = document.getElementById("fullscreenMenu");
-            if (board) board.classList.remove("pseudo-fullscreen-active");
+            if (board) {
+                board.classList.remove("pseudo-fullscreen-active");
+                // ペンツールの選択状態を保証したうえでprevent-panを戻す
+                if (opMode === 'select') {
+                    board.classList.remove("prevent-pan");
+                }
+            }
             if (menu) menu.classList.add("hidden");
+            
+            // htmlおよびbodyのオーバーフロー制御を解除
+            document.documentElement.style.overflow = '';
+            document.documentElement.style.overscrollBehavior = '';
+            document.body.style.overflow = '';
+            document.body.style.overscrollBehavior = '';
+
             setTimeout(() => {
                 adjustNotesOnResize();
                 redrawDrawings();
             }, 100);
         }
 
+        // キーボードEscでのみ、確実に疑似全画面表示を終了させる
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") {
                 const board = document.getElementById("boardContainer");
@@ -1778,21 +1789,17 @@
             }
         });
 
-        document.addEventListener("fullscreenchange", () => {
-            const menu = document.getElementById("fullscreenMenu");
+        // 疑似全画面中の下スワイプ更新（Pull-to-refresh等）や、不要なタッチ挙動を徹底防止
+        document.addEventListener('touchmove', function(e) {
             const board = document.getElementById("boardContainer");
-            if (!document.fullscreenElement) {
-                if (menu) menu.classList.add("hidden");
-                if (board) board.classList.remove("pseudo-fullscreen-active");
-            } else {
-                if (menu) menu.classList.remove("hidden");
-                if (board) board.classList.add("pseudo-fullscreen-active");
+            if (board && board.classList.contains("pseudo-fullscreen-active")) {
+                // 付箋、キャンバス、コントロール群に対する直感的な操作（タッチ、スワイプ）は阻害せず、
+                // 余白背景を引っ張ることによる「ブラウザ標準の下スワイプ更新アクション」のみを確実にブロック
+                if (!e.target.closest('.sticky-note') && !e.target.closest('#drawingCanvas') && !e.target.closest('#drawingToolbar') && !e.target.closest('#fullscreenMenu')) {
+                    e.preventDefault();
+                }
             }
-            setTimeout(() => {
-                adjustNotesOnResize();
-                redrawDrawings();
-            }, 100);
-        });
+        }, { passive: false });
 
         function exportBoardPDF() {
             const board = document.getElementById("boardContainer");
@@ -2149,8 +2156,8 @@
         }
 
         // ========================================================
-         // 🎨 手書きキャンバス(Canvas Drawing) 制御システム
-         // ========================================================
+        // 🎨 手書きキャンバス(Canvas Drawing) 制御システム
+        // ========================================================
         
         function initDrawingCanvas() {
             dCanvas = document.getElementById("drawingCanvas");
@@ -2577,3 +2584,5 @@
     </script>
 </body>
 </html>
+
+```
