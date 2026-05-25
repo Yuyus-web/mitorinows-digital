@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>見取りのワークショップDigital</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -273,7 +273,7 @@
                      ======================================================== -->
                 <div id="fullscreenMenu" class="hidden absolute top-4 right-4 z-[99999] flex items-center gap-2">
                     <!-- 直接全画面を閉じるための ✖️ ボタン -->
-                    <button onclick="disablePseudoFullscreen()" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center hover:bg-red-700 transition-all active:scale-95" title="全画面表示の終了">
+                    <button onclick="disableFullscreenAPI()" class="bg-red-600 text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center hover:bg-red-700 transition-all active:scale-95" title="全画面表示の終了">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                     
@@ -299,7 +299,7 @@
                             <button onclick="alignStickyNotes()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 text-slate-700 transition">
                                 <i class="fa-solid fa-table-cells-large"></i>きれいに整列
                             </button>
-                            <button onclick="disablePseudoFullscreen()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-red-50 text-red-600 transition">
+                            <button onclick="disableFullscreenAPI()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-red-50 text-red-600 transition">
                                 <i class="fa-solid fa-compress"></i>全画面の終了
                             </button>
                         </div>
@@ -1521,7 +1521,7 @@
                             let hasAction = false;
                             let actionMsgs = [];
 
-                            // 既存の接続のうち「5cm以上離れたため切断予定フラグ」が立っているものを解除
+                            // 既存 of 接続のうち「5cm以上離れたため切断予定フラグ」が立っているものを解除
                             activeWorkspace.records.forEach(r => {
                                 if (r.type === "interpretation" && r.tempDisconnectFact) {
                                     r.connectedFactId = null;
@@ -1721,15 +1721,59 @@
         }
 
         // ========================================================
-        // 🖥️ 全画面表示制御ロジック (CSSベース疑似フルスクリーン一本化)
+        // 🖥️ 全画面表示制御ロジック (真のFullscreen API ＆ 疑似フルスクリーンのマージ)
         // ========================================================
         function toggleFullscreen() {
-            const board = document.getElementById("boardContainer"); 
-            if (!board.classList.contains("pseudo-fullscreen-active")) {
-                enablePseudoFullscreen();
+            const isFullscreenActive = !!document.fullscreenElement;
+            if (!isFullscreenActive) {
+                enableTrueFullscreen();
             } else {
-                disablePseudoFullscreen();
+                disableFullscreenAPI();
             }
+        }
+
+        function enableTrueFullscreen() {
+            const docEl = document.documentElement;
+            const board = document.getElementById("boardContainer");
+            const menu = document.getElementById("fullscreenMenu");
+
+            // 全画面化の対象をdocument全体（ページ全体）に指定することで、
+            // ポップアップやダイアログにフォーカスが移っても強制解除されないようにガードします。
+            if (docEl.requestFullscreen) {
+                docEl.requestFullscreen().then(() => {
+                    board.classList.add("pseudo-fullscreen-active");
+                    board.classList.add("prevent-pan");
+                    if (menu) menu.classList.remove("hidden");
+                    lockScroll();
+                    showToast("全画面表示を開始しました", "info");
+                }).catch((err) => {
+                    // API制限（GitHub iframe等でallow属性がない場合）は疑似全画面へ自動フォールバック
+                    enablePseudoFullscreen();
+                });
+            } else {
+                enablePseudoFullscreen();
+            }
+        }
+
+        function disableFullscreenAPI() {
+            const board = document.getElementById("boardContainer");
+            const menu = document.getElementById("fullscreenMenu");
+
+            if (document.fullscreenElement) {
+                document.exitFullscreen().catch(() => {});
+            }
+            
+            board.classList.remove("pseudo-fullscreen-active");
+            if (opMode === 'select') {
+                board.classList.remove("prevent-pan");
+            }
+            if (menu) menu.classList.add("hidden");
+            unlockScroll();
+
+            setTimeout(() => {
+                adjustNotesOnResize();
+                redrawDrawings();
+            }, 100);
         }
 
         function enablePseudoFullscreen() {
@@ -1737,46 +1781,29 @@
             const menu = document.getElementById("fullscreenMenu");
             if (board) {
                 board.classList.add("pseudo-fullscreen-active");
-                // 疑似全画面表示中のタッチ更新（下スワイプ等）を防ぐため、ベースクラスにprevent-panをあてる
                 board.classList.add("prevent-pan");
             }
             if (menu) menu.classList.remove("hidden");
-            
-            // htmlおよびbodyの更新ジェスチャー・バウンスを徹底防止
-            document.documentElement.style.overflow = 'hidden';
-            document.documentElement.style.overscrollBehavior = 'none';
-            document.body.style.overflow = 'hidden';
-            document.body.style.overscrollBehavior = 'none';
-
-            showToast("全画面表示を開始しました", "info");
+            lockScroll();
+            showToast("全画面表示を開始しました（疑似モード）", "info");
             setTimeout(() => {
                 adjustNotesOnResize();
                 redrawDrawings();
             }, 100);
         }
 
-        function disablePseudoFullscreen() {
-            const board = document.getElementById("boardContainer");
-            const menu = document.getElementById("fullscreenMenu");
-            if (board) {
-                board.classList.remove("pseudo-fullscreen-active");
-                // ペンツールの選択状態を保証したうえでprevent-panを戻す
-                if (opMode === 'select') {
-                    board.classList.remove("prevent-pan");
-                }
-            }
-            if (menu) menu.classList.add("hidden");
-            
-            // htmlおよびbodyのオーバーフロー制御を解除
+        function lockScroll() {
+            document.documentElement.style.overflow = 'hidden';
+            document.documentElement.style.overscrollBehavior = 'none';
+            document.body.style.overflow = 'hidden';
+            document.body.style.overscrollBehavior = 'none';
+        }
+
+        function unlockScroll() {
             document.documentElement.style.overflow = '';
             document.documentElement.style.overscrollBehavior = '';
             document.body.style.overflow = '';
             document.body.style.overscrollBehavior = '';
-
-            setTimeout(() => {
-                adjustNotesOnResize();
-                redrawDrawings();
-            }, 100);
         }
 
         // キーボードEscでのみ、確実に疑似全画面表示を終了させる
@@ -1784,18 +1811,47 @@
             if (e.key === "Escape") {
                 const board = document.getElementById("boardContainer");
                 if (board && board.classList.contains("pseudo-fullscreen-active")) {
-                    disablePseudoFullscreen();
+                    disableFullscreenAPI();
                 }
             }
+        });
+
+        // ネイティブのフルスクリーン変更イベントを捕捉し状態を同期
+        document.addEventListener("fullscreenchange", () => {
+            const menu = document.getElementById("fullscreenMenu");
+            const board = document.getElementById("boardContainer");
+            if (!document.fullscreenElement) {
+                board.classList.remove("pseudo-fullscreen-active");
+                if (opMode === 'select') {
+                    board.classList.remove("prevent-pan");
+                }
+                if (menu) menu.classList.add("hidden");
+                unlockScroll();
+            } else {
+                board.classList.add("pseudo-fullscreen-active");
+                board.classList.add("prevent-pan");
+                if (menu) menu.classList.remove("hidden");
+                lockScroll();
+            }
+            setTimeout(() => {
+                adjustNotesOnResize();
+                redrawDrawings();
+            }, 100);
         });
 
         // 疑似全画面中の下スワイプ更新（Pull-to-refresh等）や、不要なタッチ挙動を徹底防止
         document.addEventListener('touchmove', function(e) {
             const board = document.getElementById("boardContainer");
             if (board && board.classList.contains("pseudo-fullscreen-active")) {
-                // 付箋、キャンバス、コントロール群に対する直感的な操作（タッチ、スワイプ）は阻害せず、
+                // 付箋、キャンバス、コントロール群、ポップアップモーダルに対するタッチ操作は阻害せず、
                 // 余白背景を引っ張ることによる「ブラウザ標準の下スワイプ更新アクション」のみを確実にブロック
-                if (!e.target.closest('.sticky-note') && !e.target.closest('#drawingCanvas') && !e.target.closest('#drawingToolbar') && !e.target.closest('#fullscreenMenu')) {
+                if (!e.target.closest('.sticky-note') && 
+                    !e.target.closest('#drawingCanvas') && 
+                    !e.target.closest('#drawingToolbar') && 
+                    !e.target.closest('#fullscreenMenu') && 
+                    !e.target.closest('form') && 
+                    !e.target.closest('.bg-white') &&
+                    !e.target.closest('.fixed')) {
                     e.preventDefault();
                 }
             }
