@@ -230,7 +230,7 @@
 
     <!-- バックアップモーダル -->
     <div id="backupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl flex flex-col overflow-hidden">
             <div class="p-5 border-b flex justify-between items-center bg-indigo-50/50 flex-shrink-0">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-database text-indigo-600"></i>データ移行</h3>
                 <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -291,7 +291,7 @@
         const recordsCol = collection(db, 'artifacts', appId, 'public', 'data', 'records');
         const drawingsCol = collection(db, 'artifacts', appId, 'public', 'data', 'drawings');
 
-        // アプリケーション状態変数 (サイズを1.2倍 94*1.2=113, 81*1.2=97 に変更)
+        // アプリケーション状態変数
         const STORAGE_KEY = "observation_workspace_v5_boards";
         const DISTANCE_3CM_PX = 114; 
         const DISTANCE_5CM_PX = 190; 
@@ -553,7 +553,13 @@
             setDrawingMode('select');
             document.getElementById("homeScreen").classList.add("hidden");
             document.getElementById("boardScreen").classList.replace("hidden", "flex");
-            initDrawingCanvas(); renderBoards();
+            
+            // DOMの描画とコンテナの表示状態・サイズがブラウザ側で確定するのを
+            // 確実に待ってからCanvasとお絵かき関係を初期化する
+            setTimeout(() => {
+                initDrawingCanvas(); 
+                renderBoards();
+            }, 60);
         }
 
         function goBackToHome() {
@@ -683,7 +689,17 @@
             const filter = document.getElementById("filterSearch").value.trim().toLowerCase();
             
             const recs = allRecords.filter(r => r.workspaceId === currentWorkspaceId && (!filter || r.text.toLowerCase().includes(filter)));
-            if (!recs.length) { b.innerHTML += `<div class="empty-message absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs pointer-events-none"><i class="fa-solid fa-note-sticky text-4xl mb-3 opacity-30"></i><span>記録がありません</span></div>`; document.getElementById("connectorSvg").innerHTML=""; return; }
+            
+            // [最重要] innerHTML += を使用すると既存のCanvasや3点リーダーのDOMとイベントが全て消滅するバグの修正
+            // 既存DOMを一切破壊しない、 document.createElement + appendChild で追加するよう再構築
+            if (!recs.length) { 
+                const emptyMsg = document.createElement("div");
+                emptyMsg.className = "empty-message absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs pointer-events-none z-10";
+                emptyMsg.innerHTML = `<i class="fa-solid fa-note-sticky text-4xl mb-3 opacity-30"></i><span>記録がありません</span>`;
+                b.appendChild(emptyMsg);
+                document.getElementById("connectorSvg").innerHTML = ""; 
+                return; 
+            }
             
             recs.forEach((r, i) => {
                 if (r.x === undefined) { r.x = 10 + (i * 8) % 55; r.y = 12 + (i * 10) % 45; }
@@ -999,7 +1015,7 @@
                     h.className = "p-5 border-b border-slate-100 flex items-center gap-2.5 bg-indigo-50/50";
                     ib.className = "bg-indigo-50 text-indigo-600 p-2 rounded-lg"; ic.className = "fa-solid fa-keyboard text-lg";
                     if (config.showDate) {
-                        dtBox.classList.remove("hidden");
+                        dtBox.boxList = dtBox.classList.remove("hidden");
                         dtInp.value = new Date().toISOString().split('T')[0];
                     } else { dtBox.classList.add("hidden"); }
                 }
@@ -1354,5 +1370,3 @@
     </script>
 </body>
 </html>
-
-```
