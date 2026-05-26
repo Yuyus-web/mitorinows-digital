@@ -191,9 +191,10 @@
                     <input type="hidden" id="noteModalMode">
                     <input type="hidden" id="noteModalRecordId">
                     <input type="hidden" id="noteModalType">
-                    <div id="noteModalInputContainer" class="p-4 rounded-xl border">
-                        <label id="noteModalInputLabel" class="block text-xs font-bold mb-1.5"></label>
-                        <textarea id="noteText" required rows="4" class="w-full p-2.5 bg-white border border-slate-200 rounded-lg text-base sm:text-sm focus:ring-2 focus:outline-none"></textarea>
+                    <!-- 不要な外枠(border)を削除し、すっきりとした余白に調整 -->
+                    <div id="noteModalInputContainer" class="p-1">
+                        <label id="noteModalInputLabel" class="block text-xs font-bold mb-1.5 transition-colors duration-200"></label>
+                        <textarea id="noteText" required rows="4" class="w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" placeholder="ここに入力してください..."></textarea>
                     </div>
                 </div>
                 <div class="flex items-center justify-end gap-2.5 p-5 border-t border-slate-100 flex-shrink-0">
@@ -230,7 +231,7 @@
 
     <!-- バックアップモーダル -->
     <div id="backupModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl w-full max-w-md max-h-[calc(100vh-2rem)] shadow-2xl border border-slate-100 flex flex-col overflow-hidden">
             <div class="p-5 border-b flex justify-between items-center bg-indigo-50/50 flex-shrink-0">
                 <h3 class="text-base font-bold text-slate-800 flex items-center gap-2"><i class="fa-solid fa-database text-indigo-600"></i>データ移行</h3>
                 <button onclick="closeBackupModal()" class="text-slate-400 hover:text-slate-600 text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -324,6 +325,7 @@
         // --- Core Utility Functions ---
         function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' }[m])); }
 
+        // トースト通知
         function showToast(message, type = "success") {
             const toast = document.getElementById("toast");
             const toastMsg = document.getElementById("toastMessage");
@@ -356,7 +358,7 @@
                     await signInAnonymously(auth);
                 }
             } catch (error) {
-                // 初心者向けの完璧なエラーハンドリング: 匿名認証が有効になっていない場合のガイダンスを画面にデカデカと描画
+                // 初心者向けの完璧なエラーハンドリング
                 const loader = document.getElementById("appLoader");
                 if (loader) {
                     loader.innerHTML = `
@@ -395,7 +397,7 @@
         function setupRealtimeListeners() {
             if (!user) return;
 
-            // 共通エラーハンドラ: Firestoreルール未設定など、原因が分かるようガイダンスを出す
+            // 共通エラーハンドラ
             const handleSyncError = (label) => (err) => {
                 console.error("[" + label + " sync] error:", err);
                 if (err && err.code === 'permission-denied') {
@@ -554,7 +556,7 @@
             document.getElementById("homeScreen").classList.add("hidden");
             document.getElementById("boardScreen").classList.replace("hidden", "flex");
             
-            // DOMの描画とコンテナの表示状態・サイズがブラウザ側で確定するのを
+            // DOMの描画とコンテナのサイズがブラウザ側で確定するのを
             // 確実に待ってからCanvasとお絵かき関係を初期化する
             setTimeout(() => {
                 initDrawingCanvas(); 
@@ -586,9 +588,32 @@
                 document.getElementById("noteModalTitle").innerHTML = `${t.icon} 記録の編集`;
                 document.getElementById("noteModalSubmitBtn").innerHTML = '変更を保存';
             }
+
+            // ヘッダーおよび保存ボタンのクラスを付箋の種別に応じて切り替える
             document.getElementById("noteModalHeader").className = `p-5 border-b flex justify-between items-center flex-shrink-0 ${t.bg} ${t.border}`;
             document.getElementById("noteModalSubmitBtn").className = `${t.btn} text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition flex items-center gap-2 text-xs`;
-            document.getElementById("noteModalInputLabel").innerHTML = `${t.icon} ${t.label}の内容`;
+            
+            const labelEl = document.getElementById("noteModalInputLabel");
+            const noteTextEl = document.getElementById("noteText");
+
+            labelEl.innerHTML = `${t.icon} ${t.label}の内容`;
+
+            // 既存のカラークラスをきれいにリセットした上で再構築する
+            labelEl.className = "block text-xs font-bold mb-1.5 transition-colors duration-200";
+            noteTextEl.className = "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm";
+
+            // 「事実」「解釈」「改善案」それぞれのポップアップに完璧なテーマカラーのフォーカスリングとラベルカラーを適応
+            if (type === 'fact') {
+                labelEl.classList.add("text-sky-600");
+                noteTextEl.classList.add("focus:ring-sky-400", "focus:border-sky-400");
+            } else if (type === 'interpretation') {
+                labelEl.classList.add("text-amber-600");
+                noteTextEl.classList.add("focus:ring-amber-400", "focus:border-amber-400");
+            } else if (type === 'improvement') {
+                labelEl.classList.add("text-emerald-600");
+                noteTextEl.classList.add("focus:ring-emerald-400", "focus:border-emerald-400");
+            }
+
             document.getElementById("noteModal").classList.replace("hidden", "flex");
         }
 
@@ -690,8 +715,7 @@
             
             const recs = allRecords.filter(r => r.workspaceId === currentWorkspaceId && (!filter || r.text.toLowerCase().includes(filter)));
             
-            // [最重要] innerHTML += を使用すると既存のCanvasや3点リーダーのDOMとイベントが全て消滅するバグの修正
-            // 既存DOMを一切破壊しない、 document.createElement + appendChild で追加するよう再構築
+            // 既存DOMを一切破壊しないように、 document.createElement + appendChild で追加するよう再構築
             if (!recs.length) { 
                 const emptyMsg = document.createElement("div");
                 emptyMsg.className = "empty-message absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs pointer-events-none z-10";
@@ -739,7 +763,6 @@
             const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
             
             // 1. 既存の結合からの「引き剥がし（距離190px以上）」判定
-            // 改善案(improvement)の場合
             if (draggedRec.type === "improvement" && draggedRec.connectedInterpId) {
                 const targetInterp = workspaceRecords.find(x => x.id === draggedRec.connectedInterpId);
                 if (targetInterp) {
@@ -752,7 +775,6 @@
                 }
             }
             
-            // 解釈(interpretation)の場合
             if (draggedRec.type === "interpretation" && draggedRec.connectedFactId) {
                 const targetFact = workspaceRecords.find(x => x.id === draggedRec.connectedFactId);
                 if (targetFact) {
@@ -765,15 +787,12 @@
                 }
             }
 
-            // ドラッグ中スナップ用の仮候補をリセット
             tempConnectionFactId = null;
             tempConnectionInterpId = null;
             tempConnectionImproveId = null;
 
             // 2. 他の付箋への「新規吸着（距離114px以内）」判定
-            // 改善案(improvement)がドラッグ中のとき：解釈(interpretation)へ吸着する
             if (draggedRec.type === "improvement") {
-                // 結合していない、または引き剥がされているときのみ吸着
                 if (!draggedRec.connectedInterpId || isDraggedImproveDisconnected) {
                     let nearest = null, minDist = Infinity;
                     workspaceRecords.forEach(o => {
@@ -788,9 +807,7 @@
                 }
             }
 
-            // 解釈(interpretation)がドラッグ中のとき
             if (draggedRec.type === "interpretation") {
-                // a. 事実(fact)へ吸着する
                 if (!draggedRec.connectedFactId || isDraggedInterpDisconnected) {
                     let nearestFact = null, minDistFact = Infinity;
                     workspaceRecords.forEach(o => {
@@ -804,7 +821,6 @@
                     }
                 }
                 
-                // b. 改善案(improvement)から吸着される
                 let nearestImp = null, minDistImp = Infinity;
                 workspaceRecords.forEach(o => {
                     if (o.type === "improvement") {
@@ -863,7 +879,6 @@
                             const updates = { x: parseFloat(draggedElement.style.left), y: parseFloat(draggedElement.style.top) };
                             const batch = writeBatch(db);
 
-                            // a. 既存接続の「引き剥がし」確定処理（新吸着がない場合、接続解除）
                             if (r.type === "improvement" && isDraggedImproveDisconnected && !tempConnectionInterpId) {
                                 updates.connectedInterpId = null;
                                 showToast("解釈とのつながりを解除しました", "info");
@@ -873,7 +888,6 @@
                                 showToast("事実とのつながりを解除しました", "info");
                             }
 
-                            // b. 「新吸着」確定処理
                             if (r.type === "improvement" && tempConnectionInterpId) {
                                 updates.connectedInterpId = tempConnectionInterpId;
                                 showToast("解釈と結びつけました", "success");
@@ -898,7 +912,6 @@
                     }
                     draggedElement.style.zIndex = "10"; draggedElement = null;
                     
-                    // ドラッグセッション一時変数のリセット
                     tempConnectionFactId = null; tempConnectionInterpId = null; tempConnectionImproveId = null;
                     isDraggedInterpDisconnected = false; isDraggedImproveDisconnected = false;
                 }
@@ -942,7 +955,6 @@
                 if (r.type === "interpretation" && r.connectedFactId) {
                     const f = workspaceRecords.find(x => x.id === r.connectedFactId);
                     if (f) {
-                        // ドラッグして引き剥がされている状態は「赤ライン」にして表現
                         const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedInterpDisconnected);
                         drawSingleLine(svg, r, f, bR, isDisconnected ? "#ef4444" : "#f59e0b", isDisconnected);
                     }
@@ -958,7 +970,6 @@
             if (draggedElement) {
                 const r = workspaceRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
                 if (r) {
-                    // 吸着時のガイドライン（点線）
                     if (tempConnectionFactId) { const t = workspaceRecords.find(x => x.id === tempConnectionFactId); if (t) drawSingleLine(svg, r, t, bR, "#f59e0b", true); }
                     if (tempConnectionImproveId) { const t = workspaceRecords.find(x => x.id === tempConnectionImproveId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
                     if (tempConnectionInterpId && r.type === "improvement") { const t = workspaceRecords.find(x => x.id === tempConnectionInterpId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
@@ -1015,7 +1026,7 @@
                     h.className = "p-5 border-b border-slate-100 flex items-center gap-2.5 bg-indigo-50/50";
                     ib.className = "bg-indigo-50 text-indigo-600 p-2 rounded-lg"; ic.className = "fa-solid fa-keyboard text-lg";
                     if (config.showDate) {
-                        dtBox.boxList = dtBox.classList.remove("hidden");
+                        dtBox.classList.remove("hidden");
                         dtInp.value = new Date().toISOString().split('T')[0];
                     } else { dtBox.classList.add("hidden"); }
                 }
@@ -1136,8 +1147,7 @@
                     createdAt: new Date().toISOString() 
                 };
                 
-                // Firestoreからのリアルタイム同期を待つ間、フリッカー（一瞬消える現象）を防ぐため
-                // 即座にローカル一時バッファに保管してCanvasをアップデート
+                // Firestoreからのリアルタイム同期を待つ間、フリッカーを防ぐ
                 localDrawings.push(newDrawing);
                 redrawDrawings();
 
@@ -1145,7 +1155,6 @@
                     try {
                         await setDoc(doc(drawingsCol, newDrawingId), newDrawing);
                     } catch (err) { 
-                        // オフライン・通信エラー時でもローカルには描画されているため、そのまま描画を保持可能
                         console.warn("Firestoreへの手書き保存に失敗しましたが、ローカルバッファで描画を維持します。");
                     }
                 }
@@ -1197,10 +1206,7 @@
             if (!dCanvas || !dCtx) return; const r = dCanvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; if (r.width === 0) return;
             dCanvas.width = r.width * dpr; dCanvas.height = r.height * dpr; dCtx.scale(dpr, dpr); dCtx.clearRect(0, 0, r.width, r.height);
             
-            // 同期データから現在のWorkspaceに属するものに絞る
             const workspaceDrawings = allDrawings.filter(d => d.workspaceId === currentWorkspaceId);
-            
-            // Firestore未反映のローカル一時描画を合流（ID重複は排除）
             const combinedDrawings = [...workspaceDrawings];
             localDrawings.forEach(ld => {
                 if (ld.workspaceId === currentWorkspaceId && !combinedDrawings.some(d => d.id === ld.id)) {
@@ -1226,7 +1232,6 @@
             if (combinedDrawings.length) {
                 const targetId = combinedDrawings[combinedDrawings.length - 1].id;
                 
-                // 即時に画面から消去
                 allDrawings = allDrawings.filter(d => d.id !== targetId);
                 localDrawings = localDrawings.filter(d => d.id !== targetId);
                 redrawDrawings();
@@ -1247,7 +1252,6 @@
             const combinedDrawings = [...allDrawings, ...localDrawings].filter(d => d.workspaceId === currentWorkspaceId);
             if (combinedDrawings.length) {
                 if (await openDialog({ type: 'confirm', title: '消去', message: 'ボード上のすべての手書き線のみを完全に消去しますか？\n（付箋データは消去されません）', danger: true })) {
-                    // 即時に画面から消去
                     allDrawings = allDrawings.filter(d => d.workspaceId !== currentWorkspaceId);
                     localDrawings = localDrawings.filter(d => d.workspaceId !== currentWorkspaceId);
                     redrawDrawings();
@@ -1266,22 +1270,19 @@
             }
         }
 
-        // 3点リーダー・ドロップダウンメニューの制御 (Click & Touch両対応)
+        // 3点リーダーメニュー制御
         function setupFloatingMenuDelay() {
             const t = document.getElementById("fullscreenMenu"), p = document.getElementById("fullscreenMenuPanel");
             
-            // ホバー制御（PC用）
             t.onmouseenter = () => { clearTimeout(menuDelayTimer); p.classList.add("menu-panel-active"); }; 
             t.onmouseleave = () => { menuDelayTimer = setTimeout(() => p.classList.remove("menu-panel-active"), 800); };
             
-            // ドキュメント内のクリック・タッチでパネルを閉じる処理
             const closePanelHandler = (e) => { 
                 if (!t.contains(e.target)) p.classList.remove("menu-panel-active"); 
             };
             document.addEventListener('click', closePanelHandler);
             document.addEventListener('touchstart', closePanelHandler);
 
-            // メニューパネル開閉トグル（Click & Touchイベント伝搬を100%遮断し、背後の手書きに点が描かれるバグを防ぐ）
             const toggleHandler = (e) => {
                 if (e.target.closest('#fullscreenMenuBtn')) { 
                     p.classList.toggle("menu-panel-active"); 
@@ -1292,7 +1293,6 @@
             t.addEventListener('click', toggleHandler);
             t.addEventListener('touchstart', toggleHandler, { passive: false });
 
-            // メニューパネル自体に触れたときは背後の手書きキャンバスにお絵かきさせないように保護
             t.onmousedown = (e) => e.stopPropagation();
             t.ontouchstart = (e) => e.stopPropagation();
         }
@@ -1309,7 +1309,6 @@
             dragOffsetY = cy - el.getBoundingClientRect().top;
             el.style.zIndex = "100";
 
-            // 新規ドラッグセッション開始時に一時フラグをすべてクリーンに初期化
             isDraggedInterpDisconnected = false;
             isDraggedImproveDisconnected = false;
             tempConnectionFactId = null;
