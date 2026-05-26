@@ -1,3 +1,4 @@
+
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -472,10 +473,12 @@
             }
         }
 
+        // 履歴を保存
         function saveHistory(history) {
             localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
         }
 
+        // 履歴に追加
         function addToHistory(id, name, date) {
             let history = getHistory();
             history = history.filter(item => item.id !== id);
@@ -484,6 +487,7 @@
             saveHistory(history);
         }
 
+        // 履歴一覧を描画
         function renderHistoryList() {
             const history = getHistory();
             const section = document.getElementById("historySection");
@@ -881,6 +885,7 @@
 
             // 2. 他の付箋への「新規吸着（距離114px以内）」判定
             if (draggedRec.type === "improvement") {
+                // 結合していない、または引き剥がされているときのみ吸着
                 if (!draggedRec.connectedInterpId || isDraggedImproveDisconnected) {
                     let nearest = null, minDist = Infinity;
                     workspaceRecords.forEach(o => {
@@ -896,6 +901,7 @@
             }
 
             if (draggedRec.type === "interpretation") {
+                // a. 事実(fact)へ吸着する
                 if (!draggedRec.connectedFactId || isDraggedInterpDisconnected) {
                     let nearestFact = null, minDistFact = Infinity;
                     workspaceRecords.forEach(o => {
@@ -909,6 +915,7 @@
                     }
                 }
                 
+                // b. 改善案(improvement)から吸着される
                 let nearestImp = null, minDistImp = Infinity;
                 workspaceRecords.forEach(o => {
                     if (o.type === "improvement") {
@@ -1058,6 +1065,7 @@
             if (draggedElement) {
                 const r = workspaceRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
                 if (r) {
+                    // 吸着時のガイドライン（点線）
                     if (tempConnectionFactId) { const t = workspaceRecords.find(x => x.id === tempConnectionFactId); if (t) drawSingleLine(svg, r, t, bR, "#f59e0b", true); }
                     if (tempConnectionImproveId) { const t = workspaceRecords.find(x => x.id === tempConnectionImproveId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
                     if (tempConnectionInterpId && r.type === "improvement") { const t = workspaceRecords.find(x => x.id === tempConnectionInterpId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
