@@ -36,7 +36,7 @@
             z-index: 100 !important;
         }
         .board-canvas {
-            min-height: 650px;
+            min-height: 600px;
             background-color: #ffffff;
             background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
             background-size: 24px 24px;
@@ -63,7 +63,7 @@
         <p class="text-[10px] text-slate-400">最初の接続には数秒かかる場合があります</p>
     </div>
 
-    <!-- エントリー画面 (左右レイアウト崩れ対策：lgブレイクポイント化 & max-widthの最適化) -->
+    <!-- エントリー画面 -->
     <div id="entryScreen" class="hidden flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-60px)]">
         <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-5xl w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
             
@@ -78,10 +78,10 @@
                 </div>
             </div>
 
-            <!-- メインコンテンツ (iPad縦向きでは1カラムでゆったり配置、iPad横向き以上で2カラム化) -->
+            <!-- メインコンテンツ -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 
-                <!-- 左カラム: ID入力 & 新規立ち上げフォーム (lg:col-span-5) -->
+                <!-- 左カラム -->
                 <div class="lg:col-span-5 flex flex-col gap-4">
                     <!-- ルーム参加フォーム -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
@@ -106,7 +106,7 @@
                     </div>
                 </div>
 
-                <!-- 右カラム: 最近使った履歴 (スクロール対応 & 削除機能統合) -->
+                <!-- 右カラム -->
                 <div class="lg:col-span-7 flex flex-col gap-2.5 border-t lg:border-t-0 lg:border-l border-slate-100 pt-5 lg:pt-0 lg:pl-6">
                     <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (履歴一覧)</span></h3>
                     <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] lg:max-h-none overflow-y-auto lg:overflow-y-visible pr-1 scrollbar-thin">
@@ -147,108 +147,111 @@
         <div id="workspaceGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
     </div>
 
-    <!-- ボード画面 (ヘッダーのレスポンシブ設計を最適化：iPad縦向きは2段組、横向き以上で1段化) -->
+    <!-- ボード画面 (iPad対応ヘッダーUI極限コンパクト化仕様) -->
     <div id="boardScreen" class="hidden flex-grow flex-col">
-        <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40 py-3 lg:py-3.5">
-            <div class="max-w-7xl mx-auto px-4 flex flex-col lg:flex-row justify-between items-center gap-3 lg:gap-4">
+        <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40 py-1 md:py-1.5">
+            <div class="max-w-7xl mx-auto px-2 sm:px-3 flex flex-col lg:flex-row justify-between items-center gap-1.5 lg:gap-2">
                 
-                <!-- ヘッダー左側: タイトル & IDバッジ (iPad縦向き時は全幅、横向き以上でフィット) -->
-                <div class="flex items-center justify-between lg:justify-start gap-3 w-full lg:w-auto pb-2 lg:pb-0 border-b lg:border-b-0 border-slate-100">
-                    <div class="flex items-center gap-3">
-                        <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl transition flex items-center justify-center"><i class="fa-solid fa-house text-sm md:text-base"></i></button>
-                        <div class="flex items-center gap-2.5">
-                            <h2 id="currentWorkspaceTitle" class="text-lg md:text-xl font-extrabold text-slate-800 tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-[240px]"></h2>
-                            <button onclick="renameCurrentWorkspace()" class="text-slate-400 hover:text-slate-600 p-1 rounded"><i class="fa-solid fa-pen text-xs"></i></button>
+                <!-- ヘッダー左側: タイトル & IDバッジ (iPadや狭い画面でも幅を極力抑える) -->
+                <div class="flex items-center justify-between lg:justify-start gap-2 w-full lg:w-auto pb-1 lg:pb-0 border-b lg:border-b-0 border-slate-100">
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition flex items-center justify-center"><i class="fa-solid fa-house text-[10px] sm:text-xs"></i></button>
+                        <div class="flex items-center gap-1">
+                            <h2 id="currentWorkspaceTitle" class="text-sm sm:text-base font-extrabold text-slate-800 tracking-tight truncate max-w-[110px] sm:max-w-[180px] md:max-w-[220px]"></h2>
+                            <button onclick="renameCurrentWorkspace()" class="text-slate-400 hover:text-slate-600 p-0.5 rounded"><i class="fa-solid fa-pen text-[9px]"></i></button>
                         </div>
                     </div>
                     <!-- コピー機能付きルームIDバッジ -->
-                    <button id="currentWorkspaceIdBadge" onclick="copyRoomIdToClipboard()" class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 px-2.5 py-1.5 rounded-xl font-mono text-[10px] md:text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm shrink-0" title="クリックしてルームIDをコピー">
-                        <i class="fa-regular fa-copy text-[10px]"></i><span id="currentWorkspaceIdText">ID: -----</span>
+                    <button id="currentWorkspaceIdBadge" onclick="copyRoomIdToClipboard()" class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 px-1.5 py-0.5 sm:py-1 rounded-lg font-mono text-[8px] sm:text-[9px] font-bold transition flex items-center gap-0.5 shadow-sm shrink-0" title="クリックしてルームIDをコピー">
+                        <i class="fa-regular fa-copy text-[8px]"></i><span id="currentWorkspaceIdText">ID: -----</span>
                     </button>
                 </div>
 
-                <!-- ヘッダー右側: 操作ボタン群 (iPad縦向きでも絶対にはみ出さないよう gap とサイズを緻密に調整) -->
-                <div class="flex flex-wrap items-center justify-center lg:justify-end gap-1.5 sm:gap-2 w-full lg:w-auto">
-                    <div id="currentWorkspaceDateContainer" class="hidden items-center gap-1.5 bg-slate-100 text-slate-600 px-3 py-2 md:py-2.5 rounded-xl text-[11px] md:text-xs font-semibold">
+                <!-- ヘッダー右側: 操作ボタン群 (iPadなどのタブレットでも絶対に改行・崩れが起きないようgap、padding、サイズを究極に縮小) -->
+                <div class="flex flex-wrap items-center justify-center lg:justify-end gap-1 sm:gap-1.5 w-full lg:w-auto">
+                    <div id="currentWorkspaceDateContainer" class="hidden items-center gap-0.5 bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-semibold">
                         <i class="fa-regular fa-calendar-days text-slate-400"></i><span id="currentWorkspaceDate"></span>
                     </div>
                     
                     <div class="relative flex items-center">
-                        <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="キーワード検索..." class="w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2 md:py-2.5">
-                        <button onclick="toggleSearchInput()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-magnifying-glass text-sm md:text-base"></i></button>
+                        <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="検索..." class="w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-lg text-xs focus:outline-none bg-slate-50 mr-0.5 py-0.5">
+                        <button onclick="toggleSearchInput()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm"><i class="fa-solid fa-magnifying-glass text-[10px] sm:text-xs"></i></button>
                     </div>
                     
-                    <div class="h-6 w-[1px] bg-slate-200 mx-0.5 md:mx-1"></div>
+                    <div class="h-4 w-[1px] bg-slate-200 mx-0.5"></div>
                     
                     <div class="flex flex-col items-center">
-                        <button onclick="openNoteModal('add', 'fact')" class="bg-sky-500 hover:bg-sky-600 text-white w-10 h-10 md:w-11 md:h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-base md:text-lg"></i></button>
-                        <span class="text-[8px] md:text-[9px] font-bold text-sky-700 mt-1">事実</span>
+                        <button onclick="openNoteModal('add', 'fact')" class="bg-sky-500 hover:bg-sky-600 text-white w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-plus text-[10px] sm:text-xs"></i></button>
+                        <span class="text-[6px] sm:text-[8px] font-bold text-sky-700 mt-0.5 leading-none">事実</span>
                     </div>
                     <div class="flex flex-col items-center">
-                        <button onclick="openNoteModal('add', 'interpretation')" class="bg-amber-500 hover:bg-amber-600 text-white w-10 h-10 md:w-11 md:h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-base md:text-lg"></i></button>
-                        <span class="text-[8px] md:text-[9px] font-bold text-amber-700 mt-1">解釈</span>
+                        <button onclick="openNoteModal('add', 'interpretation')" class="bg-amber-500 hover:bg-amber-600 text-white w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-plus text-[10px] sm:text-xs"></i></button>
+                        <span class="text-[6px] sm:text-[8px] font-bold text-amber-700 mt-0.5 leading-none">解釈</span>
                     </div>
                     <div class="flex flex-col items-center">
-                        <button onclick="openNoteModal('add', 'improvement')" class="bg-emerald-500 hover:bg-emerald-600 text-white w-10 h-10 md:w-11 md:h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-base md:text-lg"></i></button>
-                        <span class="text-[8px] md:text-[9px] font-bold text-emerald-700 mt-1">改善案</span>
+                        <button onclick="openNoteModal('add', 'improvement')" class="bg-emerald-500 hover:bg-emerald-600 text-white w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition flex items-center justify-center shadow-sm"><i class="fa-solid fa-plus text-[10px] sm:text-xs"></i></button>
+                        <span class="text-[6px] sm:text-[8px] font-bold text-emerald-700 mt-0.5 leading-none">改善案</span>
                     </div>
 
-                    <div class="h-6 w-[1px] bg-slate-200 mx-0.5 md:mx-1"></div>
-                    <button onclick="alignStickyNotes()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="付箋をきれいに並べ替える"><i class="fa-solid fa-table-cells-large text-sm md:text-base"></i></button>
-                    <button onclick="toggleFullscreen()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="全画面表示"><i class="fa-solid fa-expand text-sm md:text-base"></i></button>
-                    <button onclick="exportBoardPDF()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="PDF出力"><i class="fa-solid fa-file-pdf text-red-600 text-sm md:text-base"></i></button>
-                    <button onclick="exportCSV()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="CSV出力"><i class="fa-solid fa-file-csv text-emerald-600 text-sm md:text-base"></i></button>
-                    <button onclick="openBackupModal()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="データベースデータ移行"><i class="fa-solid fa-database text-indigo-600 text-sm md:text-base"></i></button>
+                    <div class="h-4 w-[1px] bg-slate-200 mx-0.5"></div>
+                    
+                    <!-- ボード操作アクション (データ移行がCSVの右隣に確実に収まるレイアウト) -->
+                    <button onclick="alignStickyNotes()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="きれいに整列"><i class="fa-solid fa-table-cells-large text-[10px] sm:text-xs"></i></button>
+                    <button onclick="toggleFullscreen()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="全画面表示"><i class="fa-solid fa-expand text-[10px] sm:text-xs"></i></button>
+                    <button onclick="exportBoardPDF()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="PDF出力"><i class="fa-solid fa-file-pdf text-red-600 text-[10px] sm:text-xs"></i></button>
+                    <button onclick="exportCSV()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="CSV出力"><i class="fa-solid fa-file-csv text-emerald-600 text-[10px] sm:text-xs"></i></button>
+                    <button onclick="openBackupModal()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="データ移行"><i class="fa-solid fa-database text-indigo-600 text-[10px] sm:text-xs"></i></button>
                 </div>
                 
             </div>
         </header>
 
-        <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 flex flex-col relative">
-            <div id="boardContainer" class="board-canvas rounded-3xl border border-slate-200 shadow-inner overflow-hidden w-full flex-grow relative">
+        <!-- ワークスペースを上下左右に最大化するためのコンテナ設定 -->
+        <main class="flex-grow w-full mx-auto px-1 sm:px-2 py-1.5 sm:py-2 flex flex-col relative">
+            <div id="boardContainer" class="board-canvas rounded-2xl border border-slate-200 shadow-inner overflow-hidden w-full flex-grow relative">
                 <svg id="connectorSvg" class="absolute inset-0 pointer-events-none w-full h-full z-[1]"></svg>
                 <canvas id="drawingCanvas" class="absolute inset-0 pointer-events-none w-full h-full z-[15]"></canvas>
 
                 <!-- 手書きツールバー -->
-                <div id="drawingToolbar" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute bottom-4 left-4 z-[40] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-xl p-2.5 flex flex-col gap-3 opacity-90 hover:opacity-100">
-                    <div class="flex flex-col gap-1.5 border-b border-slate-100 pb-2.5">
-                        <button id="btn-mode-select" onclick="setDrawingMode('select')" class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 shadow-sm"><i class="fa-solid fa-arrow-pointer"></i></button>
-                        <button id="btn-mode-pen" onclick="setDrawingMode('pen')" class="w-10 h-10 rounded-xl text-slate-400 hover:bg-slate-100"><i class="fa-solid fa-pen-nib"></i></button>
-                        <button id="btn-mode-eraser" onclick="setDrawingMode('eraser')" class="w-10 h-10 rounded-xl text-slate-400 hover:bg-slate-100"><i class="fa-solid fa-eraser"></i></button>
+                <div id="drawingToolbar" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute bottom-3 left-3 z-[40] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg p-1.5 flex flex-col gap-2 opacity-85 hover:opacity-100">
+                    <div class="flex flex-col gap-1 border-b border-slate-100 pb-2">
+                        <button id="btn-mode-select" onclick="setDrawingMode('select')" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 shadow-sm flex items-center justify-center"><i class="fa-solid fa-arrow-pointer text-xs"></i></button>
+                        <button id="btn-mode-pen" onclick="setDrawingMode('pen')" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center"><i class="fa-solid fa-pen-nib text-xs"></i></button>
+                        <button id="btn-mode-eraser" onclick="setDrawingMode('eraser')" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center"><i class="fa-solid fa-eraser text-xs"></i></button>
                     </div>
-                    <div id="drawingOptions" class="hidden flex-col gap-3">
-                        <div class="flex flex-col gap-1.5 items-center border-b border-slate-100 pb-2.5" id="colorPaletteContainer">
-                            <span class="text-[8px] font-bold text-slate-400">カラー</span>
-                            <button onclick="setPenColor('#1e293b')" id="color-#1e293b" class="w-6 h-6 rounded-full bg-slate-800 border-2 border-indigo-600 scale-110 shadow-sm"></button>
-                            <button onclick="setPenColor('#ef4444')" id="color-#ef4444" class="w-6 h-6 rounded-full bg-red-500 border-2 border-transparent hover:scale-105"></button>
-                            <button onclick="setPenColor('#0ea5e9')" id="color-#0ea5e9" class="w-6 h-6 rounded-full bg-sky-500 border-2 border-transparent hover:scale-105"></button>
-                            <button onclick="setPenColor('#10b981')" id="color-#10b981" class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-transparent hover:scale-105"></button>
+                    <div id="drawingOptions" class="hidden flex-col gap-2">
+                        <div class="flex flex-col gap-1 items-center border-b border-slate-100 pb-2" id="colorPaletteContainer">
+                            <span class="text-[7px] font-bold text-slate-400">色</span>
+                            <button onclick="setPenColor('#1e293b')" id="color-#1e293b" class="w-5 h-5 rounded-full bg-slate-800 border border-indigo-600 scale-105 shadow-sm"></button>
+                            <button onclick="setPenColor('#ef4444')" id="color-#ef4444" class="w-5 h-5 rounded-full bg-red-500 border border-transparent hover:scale-105"></button>
+                            <button onclick="setPenColor('#0ea5e9')" id="color-#0ea5e9" class="w-5 h-5 rounded-full bg-sky-500 border border-transparent hover:scale-105"></button>
+                            <button onclick="setPenColor('#10b981')" id="color-#10b981" class="w-5 h-5 rounded-full bg-emerald-500 border border-transparent hover:scale-105"></button>
                         </div>
-                        <div class="flex flex-col gap-1 items-center border-b border-slate-100 pb-2.5">
-                            <span class="text-[8px] font-bold text-slate-400" id="width-tool-label">太さ</span>
-                            <button onclick="setPenWidth(3)" id="width-3" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-50 font-bold text-[10px]">細</button>
-                            <button onclick="setPenWidth(6)" id="width-6" class="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 font-bold text-[10px]">中</button>
-                            <button onclick="setPenWidth(12)" id="width-12" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-50 font-bold text-[10px]">太</button>
+                        <div class="flex flex-col gap-0.5 items-center border-b border-slate-100 pb-2">
+                            <span class="text-[7px] font-bold text-slate-400" id="width-tool-label">太さ</span>
+                            <button onclick="setPenWidth(3)" id="width-3" class="w-7 h-7 rounded-md text-slate-500 hover:bg-slate-50 font-bold text-[9px] flex items-center justify-center">細</button>
+                            <button onclick="setPenWidth(6)" id="width-6" class="w-7 h-7 rounded-md bg-slate-100 text-slate-700 font-bold text-[9px] flex items-center justify-center">中</button>
+                            <button onclick="setPenWidth(12)" id="width-12" class="w-7 h-7 rounded-md text-slate-500 hover:bg-slate-50 font-bold text-[9px] flex items-center justify-center">太</button>
                         </div>
-                        <div class="flex flex-col gap-1">
-                            <button onclick="undoLastStroke()" class="w-10 h-10 rounded-xl hover:bg-slate-100 text-slate-500"><i class="fa-solid fa-rotate-left"></i></button>
-                            <button onclick="clearDrawingsWithConfirm()" class="w-10 h-10 rounded-xl hover:bg-red-50 text-red-500"><i class="fa-solid fa-trash-can"></i></button>
+                        <div class="flex flex-col gap-0.5">
+                            <button onclick="undoLastStroke()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-rotate-left text-xs"></i></button>
+                            <button onclick="clearDrawingsWithConfirm()" class="w-8 h-8 rounded-lg hover:bg-red-5 light:text-red-500 text-red-500 flex items-center justify-center"><i class="fa-solid fa-trash-can text-xs"></i></button>
                         </div>
                     </div>
                 </div>
 
                 <!-- 疑似全画面時 3点リーダーメニュー -->
-                <div id="fullscreenMenu" class="hidden absolute top-4 right-4 z-[99999]">
+                <div id="fullscreenMenu" class="hidden absolute top-3 right-3 z-[99999]">
                     <div class="relative group">
-                        <button id="fullscreenMenuBtn" class="bg-slate-800 text-white w-12 h-12 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-700"><i class="fa-solid fa-ellipsis-vertical text-lg"></i></button>
-                        <div id="fullscreenMenuPanel" class="absolute right-0 top-14 bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 w-52 flex flex-col gap-2.5 transition-all duration-300 opacity-0 transform -translate-y-4 scale-95 pointer-events-none">
-                            <h4 class="text-[10px] font-bold text-slate-400 border-b pb-1.5 mb-1">付箋を貼る</h4>
-                            <button onclick="openNoteModal('add', 'fact')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-sky-50 text-sky-700"><i class="fa-solid fa-square-plus"></i>事実付箋を追加</button>
-                            <button onclick="openNoteModal('add', 'interpretation')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-amber-50 text-amber-700"><i class="fa-solid fa-square-plus"></i>解釈付箋を追加</button>
-                            <button onclick="openNoteModal('add', 'improvement')" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-emerald-50 text-emerald-700"><i class="fa-solid fa-square-plus"></i>改善案付箋を追加</button>
-                            <h4 class="text-[10px] font-bold text-slate-400 border-b pb-1.5 mt-1.5 mb-1">ボード操作</h4>
-                            <button onclick="alignStickyNotes()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-slate-100 text-slate-700"><i class="fa-solid fa-table-cells-large"></i>きれいに整列</button>
-                            <button onclick="disableFullscreenAPI()" class="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold hover:bg-red-50 text-red-600"><i class="fa-solid fa-compress"></i>全画面の終了</button>
+                        <button id="fullscreenMenuBtn" class="bg-slate-800 text-white w-10 h-10 rounded-full shadow-2xl flex items-center justify-center hover:bg-slate-700"><i class="fa-solid fa-ellipsis-vertical text-base"></i></button>
+                        <div id="fullscreenMenuPanel" class="absolute right-0 top-12 bg-white border border-slate-200 rounded-2xl shadow-2xl p-3 w-48 flex flex-col gap-2 transition-all duration-300 opacity-0 transform -translate-y-4 scale-95 pointer-events-none">
+                            <h4 class="text-[9px] font-bold text-slate-400 border-b pb-1 mb-0.5">付箋を貼る</h4>
+                            <button onclick="openNoteModal('add', 'fact')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-sky-50 text-sky-700"><i class="fa-solid fa-square-plus"></i>事実付箋を追加</button>
+                            <button onclick="openNoteModal('add', 'interpretation')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-amber-50 text-amber-700"><i class="fa-solid fa-square-plus"></i>解釈付箋を追加</button>
+                            <button onclick="openNoteModal('add', 'improvement')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-emerald-50 text-emerald-700"><i class="fa-solid fa-square-plus"></i>改善案付箋を追加</button>
+                            <h4 class="text-[9px] font-bold text-slate-400 border-b pb-1 mt-1 mb-0.5">ボード操作</h4>
+                            <button onclick="alignStickyNotes()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-slate-100 text-slate-700"><i class="fa-solid fa-table-cells-large"></i>きれいに整列</button>
+                            <button onclick="disableFullscreenAPI()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-red-50 text-red-600"><i class="fa-solid fa-compress"></i>全画面の終了</button>
                         </div>
                     </div>
                 </div>
@@ -268,7 +271,6 @@
                     <input type="hidden" id="noteModalMode">
                     <input type="hidden" id="noteModalRecordId">
                     <input type="hidden" id="noteModalType">
-                    <!-- 不要な外枠(border)を削除し、すっきりとした余白に調整 -->
                     <div id="noteModalInputContainer" class="p-1">
                         <label id="noteModalInputLabel" class="block text-xs font-bold mb-1.5 transition-colors duration-200"></label>
                         <textarea id="noteText" required rows="4" class="w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" placeholder="ここに入力してください..."></textarea>
@@ -338,7 +340,7 @@
         <i id="toastIcon" class="fa-solid fa-circle-check text-indigo-400"></i><span id="toastMessage"></span>
     </div>
 
-    <footer class="bg-white border-t border-slate-200 mt-auto py-5 text-center text-[10px] text-slate-400">
+    <footer class="bg-white border-t border-slate-200 mt-auto py-3 text-center text-[10px] text-slate-400">
         <p>© 2026 見取りのワークショップDigital</p>
     </footer>
 
@@ -364,7 +366,7 @@
         const db = getFirestore(app);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'mitorinows-digital';
 
-        // 厳密なコレクションパスの設計 (Rule 1)
+        // コレクションパス
         const workspacesCol = collection(db, 'artifacts', appId, 'public', 'data', 'workspaces');
         const recordsCol = collection(db, 'artifacts', appId, 'public', 'data', 'records');
         const drawingsCol = collection(db, 'artifacts', appId, 'public', 'data', 'drawings');
@@ -385,14 +387,13 @@
         let allWorkspaces = [];
         let allRecords = [];
         let allDrawings = [];
-        let localDrawings = []; // 通信遅延、切断、プレビュー時の手書きフリッカー対策用バッファ
+        let localDrawings = []; 
         let user = null;
         let currentWorkspaceId = null;
         let draggedElement = null, dragOffsetX = 0, dragOffsetY = 0;
         let resizingElement = null, resizeStartWidth = 0, resizeStartHeight = 0, resizeStartX = 0, resizeStartY = 0;
         let tempConnectionFactId = null, tempConnectionInterpId = null, tempConnectionImproveId = null;
         
-        // ドラッグセッション中の一時引き剥がし管理フラグ
         let isDraggedInterpDisconnected = false;
         let isDraggedImproveDisconnected = false;
 
@@ -400,9 +401,9 @@
         let currentStrokePoints = [], lastEraserCoords = null;
         let menuDelayTimer = null;
 
-        let enteredFromAdmin = false; // ボードへ入室した際のルート保持用フラグ
-        let unsubscribeWorkspaces = null; // 管理者画面用のリアルタイムリスナー解除用
-        let unsubscribeCurrentWorkspace = null; // 現在のボードのピンポイント監視リアルタイムリスナー解除用
+        let enteredFromAdmin = false; 
+        let unsubscribeWorkspaces = null; 
+        let unsubscribeCurrentWorkspace = null; 
 
         // --- Core Utility Functions ---
         function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' }[m])); }
@@ -431,7 +432,7 @@
             }, 3000);
         }
 
-        // クリップボードへルームIDをコピー (iFrame制限への対応策)
+        // クリップボードへコピー
         function copyRoomIdToClipboard() {
             if (!currentWorkspaceId) return;
             const tempInput = document.createElement("input");
@@ -456,7 +457,6 @@
                     await signInAnonymously(auth);
                 }
             } catch (error) {
-                // 初心者向けの完璧なエラーハンドリング
                 const loader = document.getElementById("appLoader");
                 if (loader) {
                     loader.innerHTML = `
@@ -482,7 +482,6 @@
         onAuthStateChanged(auth, (currentUser) => {
             user = currentUser;
             if (user) {
-                // 接続完了時にローディング画面をフェードアウト
                 const loader = document.getElementById("appLoader");
                 if (loader) loader.classList.add("hidden");
                 document.getElementById("entryScreen").classList.remove("hidden");
@@ -497,7 +496,6 @@
         function setupRealtimeListeners() {
             if (!user) return;
 
-            // 共通エラーハンドラ
             const handleSyncError = (label) => (err) => {
                 console.error("[" + label + " sync] error:", err);
                 if (err && err.code === 'permission-denied') {
@@ -514,9 +512,7 @@
                 }
             };
 
-            // 注: workspacesColの全同期は管理者画面でのみ行うように変更（リソース削減）
-
-            // 1. 付箋データの同期 (Rule 2により全件同期してクライアントサイドメモリフィルタ)
+            // 1. 付箋データの同期
             onSnapshot(recordsCol, (snapshot) => {
                 allRecords = [];
                 snapshot.forEach(doc => { allRecords.push({ id: doc.id, ...doc.data() }); });
@@ -553,7 +549,7 @@
             }
         }
 
-        // --- ルームの「履歴機能」制御 ---
+        // --- ルームの履歴管理 ---
         function saveToHistory(roomId, name) {
             let history = [];
             try {
@@ -563,12 +559,10 @@
             }
             history = history.filter(h => h.id !== roomId);
             history.unshift({ id: roomId, name: name });
-            // 表示数に固定の上限（10件など）を設けず、すべて蓄積してスクロールできるようにする
             localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
             renderHistory();
         }
 
-        // 履歴から削除する (LocalStorageのみ)
         function removeRoomFromHistory(roomId) {
             let history = [];
             try {
@@ -581,7 +575,6 @@
             renderHistory();
         }
 
-        // 履歴画面の描画 (削除ボタンを安全にネストさせるため button 要素から div 構造へリファクタリング)
         function renderHistory() {
             const list = document.getElementById("historyList");
             if (!list) return;
@@ -606,7 +599,7 @@
                     </div>
                     <div class="flex items-center gap-1.5 shrink-0 pr-1">
                         <span class="bg-indigo-200 text-indigo-800 text-[9px] px-1.5 py-1 rounded font-mono select-all">ID: ${item.id}</span>
-                        <button onclick="deleteWorkspaceFromHistory('${item.id}', '${escapeHtml(item.name)}', event)" class="text-slate-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition" title="このボードを完全に削除">
+                        <button onclick="deleteWorkspaceFromHistory('${item.id}', '${escapeHtml(item.name)}', event)" class="text-slate-400 hover:text-red-600 hover:bg-red-55 p-1.5 rounded-lg transition" title="このボードを完全に削除">
                             <i class="fa-solid fa-trash-can text-[11px]"></i>
                         </button>
                     </div>
@@ -615,7 +608,7 @@
             });
         }
 
-        // --- 5桁のルームIDの生成（重複なきようFirestoreで検証） ---
+        // 5桁のルームIDを重複なく生成
         async function generateUniqueRoomId() {
             let id = "";
             let isUnique = false;
@@ -631,11 +624,11 @@
             return id;
         }
 
-        // --- 画面遷移制御 (3段階遷移) ---
+        // ルーム入室
         async function joinRoomById(roomId) {
             roomId = roomId.trim();
             if (!/^\d{5}$/.test(roomId)) {
-                showToast("5桁 of ルームIDを入力してください", "error");
+                showToast("5桁のルームIDを入力してください", "error");
                 return;
             }
             showToast("ルームを探しています...", "info");
@@ -681,7 +674,6 @@
             document.getElementById("entryScreen").classList.add("hidden");
             document.getElementById("homeScreen").classList.remove("hidden");
             
-            // 管理者モード：全ドキュメントをリアルタイム同期（この画面が表示されているときだけ購読）
             if (unsubscribeWorkspaces) unsubscribeWorkspaces();
             unsubscribeWorkspaces = onSnapshot(workspacesCol, (snapshot) => {
                 allWorkspaces = [];
@@ -706,7 +698,7 @@
         // --- Board & Workspace Operations ---
         async function createNewWorkspace() {
             if (!user) {
-                showToast("データベースへの接続を待っています。しばらくお待ちください...", "info");
+                showToast("データベースへの接続を待っています...", "info");
                 return;
             }
             openDialog({ type: 'prompt', title: '作成', message: '授業タイトルを入力：', showDate: true }).then(async (res) => {
@@ -739,7 +731,6 @@
             });
         }
 
-        // ワークスペース名の変更
         function renameCurrentWorkspace() {
             if (!user || !currentWorkspaceId) return;
             const b = allWorkspaces.find(x => x.id === currentWorkspaceId); if (!b) return;
@@ -751,18 +742,16 @@
             });
         }
 
-        // バックアップモーダルの表示・非表示制御
         function openBackupModal() { document.getElementById("backupModal").classList.replace("hidden", "flex"); }
         function closeBackupModal() { document.getElementById("backupModal").classList.replace("flex", "hidden"); }
 
-        // ダッシュボード履歴からのボード完全削除
         async function deleteWorkspaceFromHistory(id, name, e) {
             if (!user) return;
             e.stopPropagation();
             const confirmed = await openDialog({
                 type: 'confirm',
                 title: '実行確認',
-                message: `「${name}」 (ID: ${id}) を完全に削除しますか？\n（データベース上のボード情報、付箋、手書き線がすべて消去され、復旧できません）`,
+                message: `「${name}」 (ID: ${id}) を完全に削除しますか？\n（すべての付箋・手書き線が消去されます）`,
                 danger: true
             });
             if (confirmed) {
@@ -778,12 +767,10 @@
                     showToast("ボードをデータベースから削除しました");
                 } catch (err) {
                     showToast("削除に失敗しました", "error");
-                    console.error(err);
                 }
             }
         }
 
-        // 管理者画面からの削除
         function deleteWorkspace(id, e) {
             if (!user) return; e.stopPropagation();
             const b = allWorkspaces.find(x => x.id === id); if (!b) return;
@@ -812,20 +799,17 @@
             document.getElementById("homeScreen").classList.add("hidden");
             document.getElementById("boardScreen").classList.replace("hidden", "flex");
             
-            // 現在のワークスペース情報だけをFirestoreからピンポイント監視
             if (unsubscribeCurrentWorkspace) unsubscribeCurrentWorkspace();
             unsubscribeCurrentWorkspace = onSnapshot(doc(workspacesCol, id), (docSnap) => {
                 if (docSnap.exists()) {
                     const current = { id: docSnap.id, ...docSnap.data() };
                     
-                    // 内部リストを更新
                     const idx = allWorkspaces.findIndex(x => x.id === id);
                     if (idx >= 0) allWorkspaces[idx] = current;
                     else allWorkspaces.push(current);
 
                     document.getElementById("currentWorkspaceTitle").innerText = current.name;
                     
-                    // ボード名横のルームID表示更新
                     const idText = document.getElementById("currentWorkspaceIdText");
                     if (idText) idText.innerText = "ID: " + current.id;
 
@@ -838,7 +822,7 @@
                     }
                 } else {
                     goBackToHome();
-                    showToast("ワークスペースが見つかりません。削除された可能性があります。", "error");
+                    showToast("ワークスペースが見つかりません", "error");
                 }
             });
             
@@ -852,7 +836,6 @@
         }
 
         function goBackToHome() {
-            // リアルタイムリスナー解除
             if (unsubscribeCurrentWorkspace) {
                 unsubscribeCurrentWorkspace();
                 unsubscribeCurrentWorkspace = null;
@@ -869,21 +852,20 @@
             }
         }
 
-        // --- Form Handler Binds ---
+        // --- Form Handlers ---
         function handleJoinBtnClick() {
             const input = document.getElementById("joinRoomId");
             joinRoomById(input.value);
             input.value = "";
         }
 
-        // --- Form Handler Binds ---
         function handleQuickCreateBtnClick() {
             const input = document.getElementById("quickRoomName");
             createQuickRoom(input.value);
             input.value = "";
         }
 
-        // --- Note Modal Operations ---
+        // --- Note Modal ---
         function openNoteModal(mode, type, recordId = null) {
             document.getElementById("noteModalMode").value = mode;
             document.getElementById("noteModalType").value = type;
@@ -901,7 +883,6 @@
                 document.getElementById("noteModalSubmitBtn").innerHTML = '変更を保存';
             }
 
-            // ヘッダーおよび保存ボタンのクラスを付箋の種別に応じて切り替える
             document.getElementById("noteModalHeader").className = `p-5 border-b flex justify-between items-center flex-shrink-0 ${t.bg} ${t.border}`;
             document.getElementById("noteModalSubmitBtn").className = `${t.btn} text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition flex items-center gap-2 text-xs`;
             
@@ -909,8 +890,6 @@
             const noteTextEl = document.getElementById("noteText");
 
             labelEl.innerHTML = `${t.icon} ${t.label}の内容`;
-
-            // 既存のカラークラスをきれいにリセットした上で再構築する
             labelEl.className = "block text-xs font-bold mb-1.5 transition-colors duration-200";
             noteTextEl.className = "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm";
 
@@ -944,7 +923,6 @@
             try {
                 if (mode === 'add') {
                     const newRecordId = "rec-" + Date.now();
-                    // 新規付箋サイズを1.2倍に (113 x 97) を完全に引き継ぎ
                     await setDoc(doc(recordsCol, newRecordId), {
                         workspaceId: currentWorkspaceId,
                         type, text, x: 20 + Math.random() * 25, y: 18 + Math.random() * 25, w: 113, h: 97,
@@ -999,7 +977,7 @@
             }
         }
 
-        // --- Render UI Boards ---
+        // --- Render UI ---
         function renderHomeScreen() {
             const g = document.getElementById("workspaceGrid"); g.innerHTML = "";
             if (!allWorkspaces.length) { g.innerHTML = `<div class="col-span-full py-20 flex flex-col items-center justify-center text-slate-400 bg-white rounded-3xl border border-dashed"><i class="fa-solid fa-shapes text-5xl mb-4 opacity-40"></i><p class="text-sm font-semibold">ワークスペースがありません</p></div>`; return; }
@@ -1016,7 +994,7 @@
                         </div>
                         <div class="mt-4 border-t pt-2 flex justify-between">
                             <div class="flex gap-1 flex-wrap"><span class="bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">事実 ${f}</span><span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">解釈 ${i}</span><span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">改善 ${imp}</span></div>
-                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition"><button onclick="renameWorkspace('${b.id}', event)" class="text-slate-400 hover:text-slate-600 w-6 h-6 rounded hover:bg-slate-100"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteWorkspace('${b.id}', event)" class="text-slate-400 hover:text-red-500 w-6 h-6 rounded hover:bg-red-50"><i class="fa-solid fa-trash-can text-[9px]"></i></button></div>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition"><button onclick="renameWorkspace('${b.id}', event)" class="text-slate-400 hover:text-slate-600 w-6 h-6 rounded hover:bg-slate-100"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteWorkspace('${b.id}', event)" class="text-slate-400 hover:text-red-550 w-6 h-6 rounded hover:bg-red-55"><i class="fa-solid fa-trash-can text-[9px]"></i></button></div>
                         </div>
                     </div>`;
             });
@@ -1044,7 +1022,6 @@
                 const card = document.createElement("div"); card.id = `note-${r.id}`;
                 card.className = `sticky-note absolute rounded-2xl border flex flex-col ${t.noteBg} ${t.noteBorder} ${t.text}`;
                 card.style.left = `${r.x}%`; card.style.top = `${r.y}%`; 
-                // 標準付箋1.2倍サイズ (113 x 97) を完全に引き継ぎ
                 card.style.width = `${r.w || 113}px`; card.style.height = `${r.h || 97}px`; card.style.zIndex = "10";
                 card.onmousedown = (e) => startDrag(e, card.id); card.ontouchstart = (e) => startDrag(e, card.id);
                 card.innerHTML = `
@@ -1071,11 +1048,10 @@
             document.body.removeChild(r); tgt.style.fontSize = `${opt}px`;
         }
 
-        // --- Interaction Snapping & Drag ---
+        // --- Dragging & Snapping (iPad対応のタッチイベント処理) ---
         function checkStickySnapping(draggedRec) {
             const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
             
-            // 既存の結合からの引き剥がし判定
             if (draggedRec.type === "improvement" && draggedRec.connectedInterpId) {
                 const targetInterp = workspaceRecords.find(x => x.id === draggedRec.connectedInterpId);
                 if (targetInterp) {
@@ -1104,7 +1080,6 @@
             tempConnectionInterpId = null;
             tempConnectionImproveId = null;
 
-            // 新規吸着判定
             if (draggedRec.type === "improvement") {
                 if (!draggedRec.connectedInterpId || isDraggedImproveDisconnected) {
                     let nearest = null, minDist = Infinity;
@@ -1168,7 +1143,9 @@
                     resizingElement.style.width = `${nw}px`; resizingElement.style.height = `${nh}px`; adjustNoteFontSize(resizingElement); drawConnections(); e.preventDefault(); return;
                 }
                 if (draggedElement) {
-                    const bR = document.getElementById("boardContainer").getBoundingClientRect(), cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX, cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                    const bR = document.getElementById("boardContainer").getBoundingClientRect();
+                    const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                    const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                     let nl = cx - bR.left - dragOffsetX, nt = cy - bR.top - dragOffsetY;
                     if (nl < 0) nl = 0; if (nt < 0) nt = 0;
                     if (nl > bR.width - draggedElement.offsetWidth) nl = bR.width - draggedElement.offsetWidth; if (nt > bR.height - draggedElement.offsetHeight) nt = bR.height - draggedElement.offsetHeight;
@@ -1246,64 +1223,6 @@
                 await batch.commit();
                 showToast("付箋を整列しました");
             } catch (err) { showToast("整列同期エラー", "error"); }
-        }
-
-        function toggleSearchInput() {
-            const inp = document.getElementById("filterSearch");
-            if (inp.classList.contains("w-0")) { inp.className = "w-40 sm:w-48 opacity-100 pointer-events-auto pl-3 pr-3 border border-slate-200 rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2.5 transition-all"; inp.focus(); }
-            else { inp.value = ""; renderBoards(); inp.className = "w-0 opacity-0 pointer-events-none border border-transparent rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2.5 transition-all"; }
-        }
-
-        function applyFilters() { renderBoards(); }
-
-        // --- Connection Drawing ---
-        function drawConnections() {
-            const svg = document.getElementById("connectorSvg"); if (!svg) return; svg.innerHTML = "";
-            const bR = document.getElementById("boardContainer").getBoundingClientRect();
-            const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
-            
-            workspaceRecords.forEach(r => {
-                if (r.type === "interpretation" && r.connectedFactId) {
-                    const f = workspaceRecords.find(x => x.id === r.connectedFactId);
-                    if (f) {
-                        const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedInterpDisconnected);
-                        drawSingleLine(svg, r, f, bR, isDisconnected ? "#ef4444" : "#f59e0b", isDisconnected);
-                    }
-                }
-                if (r.type === "improvement" && r.connectedInterpId) {
-                    const i = workspaceRecords.find(x => x.id === r.connectedInterpId);
-                    if (i) {
-                        const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedImproveDisconnected);
-                        drawSingleLine(svg, r, i, bR, isDisconnected ? "#ef4444" : "#10b981", isDisconnected);
-                    }
-                }
-            });
-            if (draggedElement) {
-                const r = workspaceRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
-                if (r) {
-                    if (tempConnectionFactId) { const t = workspaceRecords.find(x => x.id === tempConnectionFactId); if (t) drawSingleLine(svg, r, t, bR, "#f59e0b", true); }
-                    if (tempConnectionImproveId) { const t = workspaceRecords.find(x => x.id === tempConnectionImproveId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
-                    if (tempConnectionInterpId && r.type === "improvement") { const t = workspaceRecords.find(x => x.id === tempConnectionInterpId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
-                }
-            }
-        }
-
-        function drawSingleLine(s, rA, rB, bR, c, isPre) {
-            const A = document.getElementById(`note-${rA.id}`), B = document.getElementById(`note-${rB.id}`); if (!A || !B) return;
-            const a = A.getBoundingClientRect(), b = B.getBoundingClientRect(), x1 = a.left - bR.left + a.width / 2, y1 = a.top - bR.top + a.height / 2, x2 = b.left - bR.left + b.width / 2, y2 = b.top - bR.top + b.height / 2;
-            const l = document.createElementNS("http://www.w3.org/2000/svg", "line"); l.setAttribute("x1", x1); l.setAttribute("y1", y1); l.setAttribute("x2", x2); l.setAttribute("y2", y2); l.setAttribute("stroke", c); l.setAttribute("stroke-width", isPre ? "3" : "5"); l.setAttribute("stroke-linecap", "round"); if (isPre) l.setAttribute("stroke-dasharray", "8,6"); l.setAttribute("opacity", isPre ? "0.75" : "0.85"); s.appendChild(l);
-            const ci = document.createElementNS("http://www.w3.org/2000/svg", "circle"); ci.setAttribute("cx", (x1 + x2) / 2); ci.setAttribute("cy", (y1 + y2) / 2); ci.setAttribute("r", isPre ? "5" : "7"); ci.setAttribute("fill", c); ci.setAttribute("stroke", "#fff"); ci.setAttribute("stroke-width", "2"); s.appendChild(ci);
-        }
-
-        function adjustNotesOnResize() {
-            const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return; const bR = b.getBoundingClientRect();
-            allRecords.forEach(r => {
-                if (r.workspaceId !== currentWorkspaceId) return;
-                const n = document.getElementById(`note-${r.id}`); if (!n) return;
-                let l = (r.x / 100) * bR.width, t = (r.y / 100) * bR.height;
-                if (l + n.offsetWidth > bR.width) l = bR.width - n.offsetWidth; if (l < 0) l = 0; if (t + n.offsetHeight > bR.height) t = bR.height - n.offsetHeight; if (t < 0) t = 0;
-                r.x = (l / bR.width) * 100; r.y = (t / bR.height) * 100; n.style.left = `${r.x}%`; n.style.top = `${r.y}%`; adjustNoteFontSize(n);
-            }); redrawDrawings(); saveAllData();
         }
 
         // --- Custom Dialog Component ---
@@ -1398,12 +1317,10 @@
                     const d = JSON.parse(e.target.result);
                     if (await openDialog({ type: 'confirm', title: '復元', message: 'データベース内の全データをインポートデータで上書きしますか？', danger: true })) {
                         const batch = writeBatch(db);
-                        // Clear old
                         allWorkspaces.forEach(w => batch.delete(doc(workspacesCol, w.id)));
                         allRecords.forEach(r => batch.delete(doc(recordsCol, r.id)));
                         allDrawings.forEach(dr => batch.delete(doc(drawingsCol, dr.id)));
                         
-                        // Import new
                         if (d.boards) d.boards.forEach(w => batch.set(doc(workspacesCol, w.id), { name: w.name, date: w.date || "", createdAt: w.createdAt || new Date().toISOString(), updatedAt: w.updatedAt || new Date().toISOString() }));
                         if (d.records) d.records.forEach(r => batch.set(doc(recordsCol, r.id), r));
                         if (d.drawings) d.drawings.forEach(dr => batch.set(doc(drawingsCol, dr.id), dr));
@@ -1436,7 +1353,12 @@
         function setPenColor(c) { penColor = c; ['#1e293b', '#ef4444', '#0ea5e9', '#10b981'].forEach(x => document.getElementById(`color-${x}`).className = `w-6 h-6 rounded-full border-2 ${x === c ? 'border-indigo-600 scale-110' : 'border-transparent hover:scale-105'} ${x === '#1e293b' ? 'bg-slate-800' : x === '#ef4444' ? 'bg-red-500' : x === '#0ea5e9' ? 'bg-sky-500' : 'bg-emerald-500'}`); }
         function setPenWidth(w) { penWidth = w; [3, 6, 12].forEach(x => document.getElementById(`width-${x}`).className = `w-8 h-8 rounded-lg font-bold text-[10px] ${x === w ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50'}`); }
         
-        function getCanvasCoords(e) { const r = dCanvas.getBoundingClientRect(), cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX, cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; return { pxX: cx - r.left, pxY: cy - r.top, pctX: ((cx - r.left) / r.width) * 100, pctY: ((cy - r.top) / r.height) * 100 }; }
+        function getCanvasCoords(e) { 
+            const r = dCanvas.getBoundingClientRect();
+            const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
+            return { pxX: cx - r.left, pxY: cy - r.top, pctX: ((cx - r.left) / r.width) * 100, pctY: ((cy - r.top) / r.height) * 100 }; 
+        }
         function onDrawStart(e) { if (opMode === 'select') return; isDrawing = true; const c = getCanvasCoords(e); if (!c) return; if (opMode === 'eraser') { lastEraserCoords = c; eraseStrokeAt(c); } else currentStrokePoints = [{ x: c.pctX, y: c.pctY }]; if (e.type.includes('touch')) e.preventDefault(); }
         function onDrawMove(e) { if (!isDrawing || opMode === 'select') return; const c = getCanvasCoords(e); if (!c) return; if (opMode === 'eraser') { lastEraserCoords = c; eraseStrokeAt(c); } else { const lp = currentStrokePoints[currentStrokePoints.length - 1]; currentStrokePoints.push({ x: c.pctX, y: c.pctY }); const r = dCanvas.getBoundingClientRect(); dCtx.beginPath(); dCtx.strokeStyle = penColor; dCtx.lineWidth = penWidth; dCtx.lineCap = 'round'; dCtx.lineJoin = 'round'; dCtx.moveTo((lp.x / 100) * r.width, (lp.y / 100) * r.height); dCtx.lineTo((c.pctX / 100) * r.width, (c.pctY / 100) * r.height); dCtx.stroke(); } if (e.type.includes('touch')) e.preventDefault(); }
         
@@ -1601,7 +1523,7 @@
             t.ontouchstart = (e) => e.stopPropagation();
         }
 
-        // --- Global Drag Logic Helper (Needed to handle coordinate translation) ---
+        // --- Global Drag Logic Helper ---
         function startDrag(e, id) {
             if (opMode !== 'select') return;
             const el = document.getElementById(id); if (!el) return;
@@ -1622,7 +1544,25 @@
             e.stopPropagation();
         }
 
-        // リサイズ処理の始点
+        // 検索入力エリアのトグル関数（UIコンパクト化仕様）
+        function toggleSearchInput() {
+            const inp = document.getElementById("filterSearch");
+            if (inp.classList.contains("w-0")) { 
+                inp.className = "w-28 sm:w-36 opacity-100 pointer-events-auto pl-1.5 pr-1.5 border border-slate-200 rounded-lg text-xs focus:outline-none bg-slate-50 mr-0.5 py-0.5 transition-all duration-300"; 
+                inp.focus(); 
+            } else { 
+                inp.value = ""; 
+                renderBoards(); 
+                inp.className = "w-0 opacity-0 pointer-events-none border border-transparent rounded-lg text-xs focus:outline-none bg-slate-50 mr-0.5 py-0.5 transition-all duration-300"; 
+            }
+        }
+
+        // 検索フィルター処理用関数（バグ修正）
+        function applyFilters() {
+            renderBoards();
+        }
+
+        // 付箋リサイズ処理の始点
         function startResize(e, id) {
             const el = document.getElementById(id); if (!el) return;
             resizingElement = el;
@@ -1633,6 +1573,17 @@
             el.style.zIndex = "100";
             e.stopPropagation();
             e.preventDefault();
+        }
+
+        function adjustNotesOnResize() {
+            const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return; const bR = b.getBoundingClientRect();
+            allRecords.forEach(r => {
+                if (r.workspaceId !== currentWorkspaceId) return;
+                const n = document.getElementById(`note-${r.id}`); if (!n) return;
+                let l = (r.x / 100) * bR.width, t = (r.y / 100) * bR.height;
+                if (l + n.offsetWidth > bR.width) l = bR.width - n.offsetWidth; if (l < 0) l = 0; if (t + n.offsetHeight > bR.height) t = bR.height - n.offsetHeight; if (t < 0) t = 0;
+                r.x = (l / bR.width) * 100; r.y = (t / bR.height) * 100; n.style.left = `${r.x}%`; n.style.top = `${r.y}%`; adjustNoteFontSize(n);
+            }); redrawDrawings(); saveAllData();
         }
 
         // --- Global Bindings for HTML ---
