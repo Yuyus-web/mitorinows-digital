@@ -83,7 +83,7 @@
                 
                 <!-- 左カラム: ID入力 & 新規立ち上げフォーム (md:col-span-5) -->
                 <div class="md:col-span-5 flex flex-col gap-4">
-                    <!-- ルーム合流フォーム (文言を「合流」から「参加」に変更) -->
+                    <!-- ルーム合流フォーム -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
                         <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-right-to-bracket text-indigo-500"></i><span>5桁のルームIDで参加する</span></h3>
                         <div class="flex gap-2">
@@ -94,7 +94,7 @@
                         </div>
                     </div>
 
-                    <!-- クイック新規作成フォーム (ボタンの文言を「新規ボード作成」に変更) -->
+                    <!-- クイック新規作成フォーム -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
                         <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-circle-plus text-emerald-500"></i><span>新しく協議（授業）を立ち上げる</span></h3>
                         <div class="flex flex-col gap-2">
@@ -106,7 +106,7 @@
                     </div>
                 </div>
 
-                <!-- 右カラム: 最近使った履歴 (全履歴を表示、縦スクロール制限対応) -->
+                <!-- 右カラム: 最近使った履歴 (スクロール対応 & 削除機能統合) -->
                 <div class="md:col-span-7 flex flex-col gap-2.5 border-t md:border-t-0 md:border-l border-slate-100 pt-5 md:pt-0 md:pl-6">
                     <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (履歴一覧)</span></h3>
                     <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1 scrollbar-thin">
@@ -559,6 +559,20 @@
             renderHistory();
         }
 
+        // 履歴から削除する (LocalStorageのみ)
+        function removeRoomFromHistory(roomId) {
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            } catch(e) {
+                history = [];
+            }
+            history = history.filter(h => h.id !== roomId);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        // 履歴画面の描画 (削除ボタンを安全にネストさせるため button 要素から div 構造へリファクタリング)
         function renderHistory() {
             const list = document.getElementById("historyList");
             if (!list) return;
@@ -574,14 +588,21 @@
                 return;
             }
             history.forEach(item => {
-                const btn = document.createElement("button");
-                btn.className = "w-full text-left bg-indigo-50/60 hover:bg-indigo-100/80 text-indigo-950 font-bold px-4 py-2.5 rounded-xl text-xs transition border border-indigo-100/40 flex items-center justify-between group shadow-sm";
-                btn.onclick = () => { joinRoomById(item.id); };
-                btn.innerHTML = `
-                    <span class="truncate pr-2 flex items-center gap-1.5"><i class="fa-regular fa-clock text-indigo-400 text-[10px]"></i>${escapeHtml(item.name)}</span>
-                    <span class="bg-indigo-200 text-indigo-800 text-[9px] px-1.5 py-0.5 rounded font-mono group-hover:bg-indigo-600 group-hover:text-white transition">ID: ${item.id}</span>
+                const card = document.createElement("div");
+                card.className = "w-full bg-indigo-50/60 hover:bg-indigo-100/80 text-indigo-950 font-bold rounded-xl text-xs transition border border-indigo-100/40 flex items-center justify-between shadow-sm p-1";
+                card.innerHTML = `
+                    <div onclick="joinRoomById('${item.id}')" class="flex-grow cursor-pointer pl-3 py-2 truncate flex items-center gap-1.5 select-none" title="${escapeHtml(item.name)}を開く">
+                        <i class="fa-regular fa-clock text-indigo-400 text-[10px]"></i>
+                        <span class="truncate">${escapeHtml(item.name)}</span>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0 pr-1">
+                        <span class="bg-indigo-200 text-indigo-800 text-[9px] px-1.5 py-1 rounded font-mono select-all">ID: ${item.id}</span>
+                        <button onclick="deleteWorkspaceFromHistory('${item.id}', '${escapeHtml(item.name)}', event)" class="text-slate-400 hover:text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition" title="このボードを完全に削除">
+                            <i class="fa-solid fa-trash-can text-[11px]"></i>
+                        </button>
+                    </div>
                 `;
-                list.appendChild(btn);
+                list.appendChild(card);
             });
         }
 
@@ -605,7 +626,7 @@
         async function joinRoomById(roomId) {
             roomId = roomId.trim();
             if (!/^\d{5}$/.test(roomId)) {
-                showToast("5桁の数字を入力してください", "error");
+                showToast("5桁 of ルームIDを入力してください", "error");
                 return;
             }
             showToast("ルームを探しています...", "info");
@@ -725,17 +746,51 @@
         function openBackupModal() { document.getElementById("backupModal").classList.replace("hidden", "flex"); }
         function closeBackupModal() { document.getElementById("backupModal").classList.replace("flex", "hidden"); }
 
-        function deleteWorkspace(id, e) {
-            if (!user) return; e.stopPropagation();
-            const b = allWorkspaces.find(x => x.id === id); if (!b) return;
-            openDialog({ type: 'confirm', title: '実行確認', message: `「${b.name}」を削除しますか？\n（付箋データ等もすべて消去されます）`, danger: true }).then(async (confirmed) => {
-                if (confirmed) {
+        // ダッシュボード履歴からのボード完全削除
+        async function deleteWorkspaceFromHistory(id, name, e) {
+            if (!user) return;
+            e.stopPropagation();
+            const confirmed = await openDialog({
+                type: 'confirm',
+                title: '実行確認',
+                message: `「${name}」 (ID: ${id}) を完全に削除しますか？\n（データベース上のボード情報、付箋、手書き線がすべて消去され、復旧できません）`,
+                danger: true
+            });
+            if (confirmed) {
+                try {
+                    showToast("削除中...", "info");
                     await deleteDoc(doc(workspacesCol, id));
                     const batch = writeBatch(db);
                     allRecords.filter(r => r.workspaceId === id).forEach(r => batch.delete(doc(recordsCol, r.id)));
                     allDrawings.filter(d => d.workspaceId === id).forEach(d => batch.delete(doc(drawingsCol, d.id)));
                     await batch.commit();
-                    showToast("削除しました");
+
+                    removeRoomFromHistory(id);
+                    showToast("ボードをデータベースから削除しました");
+                } catch (err) {
+                    showToast("削除に失敗しました", "error");
+                    console.error(err);
+                }
+            }
+        }
+
+        // 管理者画面からの削除
+        function deleteWorkspace(id, e) {
+            if (!user) return; e.stopPropagation();
+            const b = allWorkspaces.find(x => x.id === id); if (!b) return;
+            openDialog({ type: 'confirm', title: '実行確認', message: `「${b.name}」を完全に削除しますか？\n（付箋データや手書き線等もすべて消去されます）`, danger: true }).then(async (confirmed) => {
+                if (confirmed) {
+                    try {
+                        await deleteDoc(doc(workspacesCol, id));
+                        const batch = writeBatch(db);
+                        allRecords.filter(r => r.workspaceId === id).forEach(r => batch.delete(doc(recordsCol, r.id)));
+                        allDrawings.filter(d => d.workspaceId === id).forEach(d => batch.delete(doc(drawingsCol, d.id)));
+                        await batch.commit();
+                        removeRoomFromHistory(id);
+                        showToast("削除しました");
+                    } catch (err) {
+                        showToast("削除に失敗しました", "error");
+                    }
                 }
             });
         }
@@ -1558,6 +1613,7 @@
             e.stopPropagation();
         }
 
+        // リサイズ処理の始点
         function startResize(e, id) {
             const el = document.getElementById(id); if (!el) return;
             resizingElement = el;
@@ -1606,6 +1662,8 @@
         window.showAdminHomeScreen = showAdminHomeScreen;
         window.exitAdminHomeScreen = exitAdminHomeScreen;
         window.copyRoomIdToClipboard = copyRoomIdToClipboard;
+        window.joinRoomById = joinRoomById;
+        window.deleteWorkspaceFromHistory = deleteWorkspaceFromHistory;
 
         // --- Startup Initialization ---
         loadAllData();
