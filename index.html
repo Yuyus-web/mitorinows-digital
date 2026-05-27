@@ -63,7 +63,7 @@
         <p class="text-[10px] text-slate-400">最初の接続には数秒かかる場合があります</p>
     </div>
 
-    <!-- エントリー画面 (左右2カラム構成・グリッドレイアウトへ進化) -->
+    <!-- エントリー画面 -->
     <div id="entryScreen" class="hidden flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-60px)]">
         <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
             
@@ -78,7 +78,7 @@
                 </div>
             </div>
 
-            <!-- メインコンテンツを2カラムに再設計 -->
+            <!-- メインコンテンツ (左右2カラム構成) -->
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
                 
                 <!-- 左カラム: ID入力 & 新規立ち上げフォーム (md:col-span-5) -->
@@ -106,10 +106,9 @@
                     </div>
                 </div>
 
-                <!-- 右カラム: 最近使った履歴 (md:col-span-7 / 2列グリッドでスクロール不要の配置) -->
+                <!-- 右カラム: 最近使った履歴 (最大10件を表示) -->
                 <div class="md:col-span-7 flex flex-col gap-2.5 border-t md:border-t-0 md:border-l border-slate-100 pt-5 md:pt-0 md:pl-6">
                     <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (最大10件を表示)</span></h3>
-                    <!-- 2列に綺麗に並べて一度に見えるようにグリッドを拡張 -->
                     <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[350px] md:max-h-none overflow-y-auto md:overflow-y-visible pr-1 scrollbar-none">
                         <!-- 履歴がJSで挿入されます -->
                     </div>
@@ -154,9 +153,14 @@
             <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-11 h-11 rounded-xl transition flex items-center justify-center"><i class="fa-solid fa-house text-base"></i></button>
-                    <div class="flex items-center gap-2.5">
+                    <!-- flex-wrap に変更し、ID表示用のバッジを追記 -->
+                    <div class="flex flex-wrap items-center gap-2.5">
                         <h2 id="currentWorkspaceTitle" class="text-xl font-extrabold text-slate-800 tracking-tight truncate max-w-[150px] sm:max-w-[240px]"></h2>
                         <button onclick="renameCurrentWorkspace()" class="text-slate-400 hover:text-slate-600 p-1 rounded"><i class="fa-solid fa-pen text-xs"></i></button>
+                        <!-- コピー機能付きルームIDバッジ -->
+                        <button id="currentWorkspaceIdBadge" onclick="copyRoomIdToClipboard()" class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 px-2.5 py-1 rounded-xl font-mono text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm shrink-0" title="クリックしてルームIDをコピー">
+                            <i class="fa-regular fa-copy text-[10px]"></i><span id="currentWorkspaceIdText">ID: -----</span>
+                        </button>
                     </div>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -197,7 +201,7 @@
                 <svg id="connectorSvg" class="absolute inset-0 pointer-events-none w-full h-full z-[1]"></svg>
                 <canvas id="drawingCanvas" class="absolute inset-0 pointer-events-none w-full h-full z-[15]"></canvas>
 
-                <!-- 手書きツールバー (お絵かきへのイベント干渉を停止) -->
+                <!-- 手書きツールバー -->
                 <div id="drawingToolbar" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute bottom-4 left-4 z-[40] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-xl p-2.5 flex flex-col gap-3 opacity-90 hover:opacity-100">
                     <div class="flex flex-col gap-1.5 border-b border-slate-100 pb-2.5">
                         <button id="btn-mode-select" onclick="setDrawingMode('select')" class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 shadow-sm"><i class="fa-solid fa-arrow-pointer"></i></button>
@@ -417,6 +421,22 @@
                 toast.classList.remove("translate-y-0", "opacity-100");
                 toast.classList.add("translate-y-20", "opacity-0");
             }, 3000);
+        }
+
+        // クリップボードへルームIDをコピー (iFrame制限への対応策)
+        function copyRoomIdToClipboard() {
+            if (!currentWorkspaceId) return;
+            const tempInput = document.createElement("input");
+            tempInput.value = currentWorkspaceId;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                showToast(`ルームID [${currentWorkspaceId}] をコピーしました！`, "success");
+            } catch (err) {
+                showToast("コピーに失敗しました", "error");
+            }
+            document.body.removeChild(tempInput);
         }
 
         // --- Firebase Auth & Synced Listeners ---
@@ -740,6 +760,11 @@
                     else allWorkspaces.push(current);
 
                     document.getElementById("currentWorkspaceTitle").innerText = current.name;
+                    
+                    // ボード名横のルームID表示更新
+                    const idText = document.getElementById("currentWorkspaceIdText");
+                    if (idText) idText.innerText = "ID: " + current.id;
+
                     const dc = document.getElementById("currentWorkspaceDateContainer"), ds = document.getElementById("currentWorkspaceDate");
                     if (current.date) {
                         ds.innerText = new Date(current.date).toLocaleDateString("ja-JP") + " 実施";
@@ -1580,6 +1605,7 @@
         window.handleQuickCreateBtnClick = handleQuickCreateBtnClick;
         window.showAdminHomeScreen = showAdminHomeScreen;
         window.exitAdminHomeScreen = exitAdminHomeScreen;
+        window.copyRoomIdToClipboard = copyRoomIdToClipboard;
 
         // --- Startup Initialization ---
         loadAllData();
