@@ -63,7 +63,7 @@
         <p class="text-[10px] text-slate-400">最初の接続には数秒かかる場合があります</p>
     </div>
 
-    <!-- エントリー画面 (新規追加：最前面) -->
+    <!-- エントリー画面 -->
     <div id="entryScreen" class="hidden flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-60px)]">
         <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
             
@@ -100,10 +100,10 @@
                 </div>
             </div>
 
-            <!-- 最近使った履歴 -->
+            <!-- 最近使った履歴 (最大10表示対応 & 縦スクロール対応) -->
             <div class="flex flex-col gap-2">
-                <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード</span></h3>
-                <div id="historyList" class="flex flex-col gap-1.5">
+                <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (最大10件)</span></h3>
+                <div id="historyList" class="flex flex-col gap-1.5 max-h-[200px] overflow-y-auto pr-1 scrollbar-thin">
                     <!-- 履歴がJSで挿入されます -->
                 </div>
             </div>
@@ -526,7 +526,7 @@
             }
             history = history.filter(h => h.id !== roomId);
             history.unshift({ id: roomId, name: name });
-            if (history.length > 3) history = history.slice(0, 3);
+            if (history.length > 10) history = history.slice(0, 10); // 最大10表示できるように拡張
             localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
             renderHistory();
         }
@@ -691,6 +691,10 @@
                 }
             });
         }
+
+        // バックアップモーダルの表示・非表示制御 (閉じないバグを修正)
+        function openBackupModal() { document.getElementById("backupModal").classList.replace("hidden", "flex"); }
+        function closeBackupModal() { document.getElementById("backupModal").classList.replace("flex", "hidden"); }
 
         function deleteWorkspace(id, e) {
             if (!user) return; e.stopPropagation();
@@ -1285,10 +1289,6 @@
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8" })); a.download = `${document.getElementById("currentWorkspaceTitle").innerText || "board"}.csv`; a.click(); showToast("CSV出力完了");
         }
         
-        // バックアップモーダルの表示・非表示制御
-        function openBackupModal() { document.getElementById("backupModal").classList.replace("hidden", "flex"); }
-        function closeBackupModal() { document.getElementById("backupModal").classList.replace("hidden", "flex"); }
-        
         function exportDataJSON() {
             const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ boards: allWorkspaces, records: allRecords, drawings: allDrawings, exportedAt: new Date().toISOString() })], { type: "application/json" })); a.download = `backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); showToast("バックアップ生成");
         }
@@ -1310,7 +1310,9 @@
                         if (d.drawings) d.drawings.forEach(dr => batch.set(doc(drawingsCol, dr.id), dr));
                         
                         await batch.commit();
-                        goBackToHome(); window.closeBackupModal(); showToast("復元完了しました！");
+                        closeBackupModal();
+                        goBackToHome(); 
+                        showToast("復元完了しました！");
                     }
                 } catch (err) { showToast("解析に失敗しました", "error"); }
             }; reader.readAsText(f);
