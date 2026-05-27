@@ -83,33 +83,33 @@
                 
                 <!-- 左カラム: ID入力 & 新規立ち上げフォーム (md:col-span-5) -->
                 <div class="md:col-span-5 flex flex-col gap-4">
-                    <!-- ルーム合流フォーム -->
+                    <!-- ルーム合流フォーム (文言を「合流」から「参加」に変更) -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
-                        <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-right-to-bracket text-indigo-500"></i><span>5桁のルームIDで合流する</span></h3>
+                        <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-right-to-bracket text-indigo-500"></i><span>5桁のルームIDで参加する</span></h3>
                         <div class="flex gap-2">
                             <input type="text" id="joinRoomId" placeholder="例: 59281" maxlength="5" pattern="\d*" class="flex-grow px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-base focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200 shadow-inner font-mono text-center tracking-widest text-slate-800 placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300">
                             <button onclick="handleJoinBtnClick()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-md shadow-indigo-100 shrink-0 flex items-center gap-1">
-                                <span>参画</span><i class="fa-solid fa-chevron-right text-[10px]"></i>
+                                <span>参加</span><i class="fa-solid fa-chevron-right text-[10px]"></i>
                             </button>
                         </div>
                     </div>
 
-                    <!-- クイック新規作成フォーム -->
+                    <!-- クイック新規作成フォーム (ボタンの文言を「新規ボード作成」に変更) -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
                         <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-circle-plus text-emerald-500"></i><span>新しく協議（授業）を立ち上げる</span></h3>
                         <div class="flex flex-col gap-2">
                             <input type="text" id="quickRoomName" placeholder="授業名を入力（例：5年1組 算数）" class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all duration-200 shadow-inner text-slate-800">
                             <button onclick="handleQuickCreateBtnClick()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-emerald-100 flex items-center justify-center gap-1.5">
-                                <i class="fa-solid fa-plus"></i><span>新規ボード作成して合流</span>
+                                <i class="fa-solid fa-plus"></i><span>新規ボード作成</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- 右カラム: 最近使った履歴 (最大10件を表示) -->
+                <!-- 右カラム: 最近使った履歴 (全履歴を表示、縦スクロール制限対応) -->
                 <div class="md:col-span-7 flex flex-col gap-2.5 border-t md:border-t-0 md:border-l border-slate-100 pt-5 md:pt-0 md:pl-6">
-                    <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (最大10件を表示)</span></h3>
-                    <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[350px] md:max-h-none overflow-y-auto md:overflow-y-visible pr-1 scrollbar-none">
+                    <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (履歴一覧)</span></h3>
+                    <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1 scrollbar-thin">
                         <!-- 履歴がJSで挿入されます -->
                     </div>
                 </div>
@@ -153,7 +153,6 @@
             <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-11 h-11 rounded-xl transition flex items-center justify-center"><i class="fa-solid fa-house text-base"></i></button>
-                    <!-- flex-wrap に変更し、ID表示用のバッジを追記 -->
                     <div class="flex flex-wrap items-center gap-2.5">
                         <h2 id="currentWorkspaceTitle" class="text-xl font-extrabold text-slate-800 tracking-tight truncate max-w-[150px] sm:max-w-[240px]"></h2>
                         <button onclick="renameCurrentWorkspace()" class="text-slate-400 hover:text-slate-600 p-1 rounded"><i class="fa-solid fa-pen text-xs"></i></button>
@@ -555,7 +554,7 @@
             }
             history = history.filter(h => h.id !== roomId);
             history.unshift({ id: roomId, name: name });
-            if (history.length > 10) history = history.slice(0, 10); // 最大10表示できるように拡張
+            // 表示数に固定の上限（10件など）を設けず、すべて蓄積してスクロールできるようにする
             localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
             renderHistory();
         }
@@ -710,6 +709,7 @@
             });
         }
 
+        // ワークスペース名の変更
         function renameCurrentWorkspace() {
             if (!user || !currentWorkspaceId) return;
             const b = allWorkspaces.find(x => x.id === currentWorkspaceId); if (!b) return;
@@ -721,7 +721,7 @@
             });
         }
 
-        // バックアップモーダルの表示・非表示制御 (閉じないバグを修正)
+        // バックアップモーダルの表示・非表示制御
         function openBackupModal() { document.getElementById("backupModal").classList.replace("hidden", "flex"); }
         function closeBackupModal() { document.getElementById("backupModal").classList.replace("flex", "hidden"); }
 
@@ -748,7 +748,7 @@
             document.getElementById("homeScreen").classList.add("hidden");
             document.getElementById("boardScreen").classList.replace("hidden", "flex");
             
-            // 現在のワークスペース情報だけをFirestoreからピンポイント監視（超高効率）
+            // 現在のワークスペース情報だけをFirestoreからピンポイント監視
             if (unsubscribeCurrentWorkspace) unsubscribeCurrentWorkspace();
             unsubscribeCurrentWorkspace = onSnapshot(doc(workspacesCol, id), (docSnap) => {
                 if (docSnap.exists()) {
