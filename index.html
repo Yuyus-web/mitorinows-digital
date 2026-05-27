@@ -1,4 +1,3 @@
-
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -64,91 +63,88 @@
         <p class="text-[10px] text-slate-400">最初の接続には数秒かかる場合があります</p>
     </div>
 
-    <!-- 1. エントリー画面（部屋コード入力 ＆ 立ち上げ ＆ 履歴） -->
-    <div id="entryScreen" class="flex-grow flex items-center justify-center p-4">
-        <div class="bg-white/95 backdrop-blur-md rounded-3xl p-8 max-w-md w-full shadow-2xl border border-slate-100 flex flex-col gap-6">
-            <div class="text-center flex flex-col items-center gap-3">
-                <div class="bg-indigo-600 text-white p-4 rounded-2xl shadow-lg shadow-indigo-100">
-                    <i class="fa-solid fa-cubes text-4xl"></i>
+    <!-- エントリー画面 (新規追加：最前面) -->
+    <div id="entryScreen" class="hidden flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-60px)]">
+        <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
+            
+            <!-- ロゴ -->
+            <div class="text-center flex flex-col items-center gap-2 border-b border-slate-100 pb-5">
+                <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-100">
+                    <i class="fa-solid fa-cubes text-3xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">見取りのワークショップDigital</h1>
-                    <p class="text-xs text-slate-500 mt-1">子どもの事実・解釈・改善案を視覚的に整理するキャンバス</p>
+                    <h1 class="text-2xl font-black text-slate-800 tracking-tight">見取りのワークショップ</h1>
+                    <p class="text-[9px] text-slate-400 font-bold tracking-wider uppercase mt-0.5">Digital Observation Workspace</p>
                 </div>
             </div>
 
-            <!-- ルーム入室フォーム -->
-            <div class="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 flex flex-col gap-3">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-right-to-bracket text-indigo-500"></i>ルームに参加する
-                </h3>
+            <!-- ルーム合流フォーム -->
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
+                <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-right-to-bracket text-indigo-500"></i><span>5桁のルームIDで合流する</span></h3>
                 <div class="flex gap-2">
-                    <input type="text" id="inputRoomId" placeholder="5桁のIDを入力 (例: 59281)" maxlength="5" class="flex-grow px-4 py-3 bg-white border border-slate-200 rounded-xl text-center text-lg font-bold tracking-widest focus:ring-2 focus:ring-indigo-400 focus:outline-none focus:border-indigo-400 shadow-sm text-slate-800">
-                    <button onclick="joinRoomById()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-3 rounded-xl transition shadow-md shadow-indigo-100 flex items-center justify-center">
-                        <i class="fa-solid fa-circle-arrow-right text-lg"></i>
+                    <input type="text" id="joinRoomId" placeholder="例: 59281" maxlength="5" pattern="\d*" class="flex-grow px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-base focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200 shadow-inner font-mono text-center tracking-widest text-slate-800 placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300">
+                    <button onclick="handleJoinBtnClick()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-md shadow-indigo-100 shrink-0 flex items-center gap-1">
+                        <span>参画</span><i class="fa-solid fa-chevron-right text-[10px]"></i>
                     </button>
                 </div>
             </div>
 
             <!-- クイック新規作成フォーム -->
-            <div class="bg-slate-50/50 rounded-2xl p-5 border border-slate-100 flex flex-col gap-3">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-circle-plus text-emerald-500"></i>新しく協議を立ち上げる
-                </h3>
-                <div class="flex flex-col gap-2.5">
-                    <input type="text" id="newRoomName" placeholder="授業・協議のタイトル名" class="px-4 py-3 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-400 focus:outline-none focus:border-emerald-400 shadow-sm text-slate-800">
-                    <div class="flex gap-2">
-                        <input type="date" id="newRoomDate" class="flex-grow px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-400 focus:outline-none focus:border-emerald-400 text-slate-700 shadow-sm">
-                        <button onclick="createAndJoinRoom()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-4 py-2.5 rounded-xl transition shadow-md shadow-emerald-100 text-xs flex items-center justify-center gap-1">
-                            <i class="fa-solid fa-plus"></i>立ち上げる
-                        </button>
-                    </div>
+            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
+                <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-circle-plus text-emerald-500"></i><span>新しく協議（授業）を立ち上げる</span></h3>
+                <div class="flex flex-col gap-2">
+                    <input type="text" id="quickRoomName" placeholder="授業名を入力（例：5年1組 算数）" class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all duration-200 shadow-inner text-slate-800">
+                    <button onclick="handleQuickCreateBtnClick()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-emerald-100 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i><span>新規ボード作成して合流</span>
+                    </button>
                 </div>
             </div>
 
-            <!-- 最近使ったボード（履歴） -->
-            <div id="historySection" class="hidden flex-col gap-2.5">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-clock-rotate-left text-slate-400"></i>最近使ったボード (最大3件)
-                </h3>
-                <div id="historyList" class="flex flex-col gap-2"></div>
+            <!-- 最近使った履歴 -->
+            <div class="flex flex-col gap-2">
+                <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード</span></h3>
+                <div id="historyList" class="flex flex-col gap-1.5">
+                    <!-- 履歴がJSで挿入されます -->
+                </div>
             </div>
 
-            <!-- 管理者用裏口 -->
-            <div class="text-center mt-2 border-t border-slate-100 pt-4">
-                <button onclick="openAdminHome()" class="text-slate-400 hover:text-indigo-600 text-[10px] font-semibold transition flex items-center justify-center gap-1 mx-auto">
-                    <i class="fa-solid fa-screwdriver-wrench"></i>管理者用：全ワークスペース一覧へ
+            <!-- 管理者用リンク -->
+            <div class="text-center pt-2 border-t border-slate-100">
+                <button onclick="showAdminHomeScreen()" class="text-slate-400 hover:text-indigo-600 text-[10px] font-bold transition flex items-center justify-center gap-1 mx-auto py-1">
+                    <i class="fa-solid fa-sliders text-[9px]"></i><span>管理者用：全ワークスペース一覧へ</span>
                 </button>
             </div>
+
         </div>
     </div>
 
-    <!-- 2. 管理者用の全マイボード一覧画面 (従来のホーム画面を裏口に調整) -->
+    <!-- ホーム画面（管理者用・マイボード一覧） -->
     <div id="homeScreen" class="hidden flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 border-b border-slate-200 pb-6">
             <div class="flex items-center gap-4">
-                <button onclick="goBackToEntryFromAdmin()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-11 h-11 rounded-xl transition flex items-center justify-center" title="エントリー画面へ戻る">
-                    <i class="fa-solid fa-arrow-left text-base"></i>
+                <button onclick="exitAdminHomeScreen()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-arrow-left"></i><span>戻る</span>
                 </button>
+                <div class="h-8 w-[1px] bg-slate-200"></div>
                 <div>
-                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">管理モード：全ボード一覧</h1>
-                    <p class="text-xs text-slate-500 mt-1">全校で立ち上げられたすべてのワークスペースを管理・編集・削除できます</p>
+                    <h1 class="text-3xl font-extrabold text-slate-800 tracking-tight">ワークスペース管理</h1>
+                    <p class="text-xs text-slate-500 mt-1">全校の事実・解釈・改善案のボード一覧と管理</p>
                 </div>
             </div>
             <button onclick="createNewWorkspace()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-xl text-sm font-bold flex items-center gap-2 transition shadow-md shadow-indigo-100">
                 <i class="fa-solid fa-circle-plus text-base"></i><span>新規ワークスペース</span>
             </button>
         </div>
-        <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2"><i class="fa-solid fa-folder-open text-indigo-500"></i><span>登録済み全ボード一覧</span></h2>
+        <h2 class="text-lg font-bold text-slate-700 mb-6 flex items-center gap-2"><i class="fa-solid fa-folder-open text-indigo-500"></i><span>登録済みボード一覧</span></h2>
         <div id="workspaceGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
     </div>
 
-    <!-- 3. ボード画面 -->
+    <!-- ボード画面 -->
     <div id="boardScreen" class="hidden flex-grow flex-col">
         <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
             <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
                 <div class="flex items-center gap-3 w-full md:w-auto">
-                    <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-11 h-11 rounded-xl transition flex items-center justify-center" title="メインに戻る"><i class="fa-solid fa-house text-base"></i></button>
+                    <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-11 h-11 rounded-xl transition flex items-center justify-center"><i class="fa-solid fa-house text-base"></i></button>
                     <div class="flex items-center gap-2.5">
                         <h2 id="currentWorkspaceTitle" class="text-xl font-extrabold text-slate-800 tracking-tight truncate max-w-[150px] sm:max-w-[240px]"></h2>
                         <button onclick="renameCurrentWorkspace()" class="text-slate-400 hover:text-slate-600 p-1 rounded"><i class="fa-solid fa-pen text-xs"></i></button>
@@ -159,7 +155,7 @@
                         <i class="fa-regular fa-calendar-days text-slate-400"></i><span id="currentWorkspaceDate"></span>
                     </div>
                     <div class="relative flex items-center">
-                        <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="キーワード検索..." class="w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2.5 text-slate-800">
+                        <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="キーワード検索..." class="w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2.5">
                         <button onclick="toggleSearchInput()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-magnifying-glass text-base"></i></button>
                     </div>
                     <div class="h-8 w-[1px] bg-slate-200 mx-1"></div>
@@ -191,9 +187,6 @@
             <div id="boardContainer" class="board-canvas rounded-3xl border border-slate-200 shadow-inner overflow-hidden w-full flex-grow relative">
                 <svg id="connectorSvg" class="absolute inset-0 pointer-events-none w-full h-full z-[1]"></svg>
                 <canvas id="drawingCanvas" class="absolute inset-0 pointer-events-none w-full h-full z-[15]"></canvas>
-
-                <!-- 付箋や空のメッセージを描画する専用のエリアを設け、基盤DOMが破壊されるのを防ぐ -->
-                <div id="notesContainer" class="absolute inset-0 z-[10] pointer-events-none"></div>
 
                 <!-- 手書きツールバー (お絵かきへのイベント干渉を停止) -->
                 <div id="drawingToolbar" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute bottom-4 left-4 z-[40] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-2xl shadow-xl p-2.5 flex flex-col gap-3 opacity-90 hover:opacity-100">
@@ -257,7 +250,7 @@
                     <!-- 不要な外枠(border)を削除し、すっきりとした余白に調整 -->
                     <div id="noteModalInputContainer" class="p-1">
                         <label id="noteModalInputLabel" class="block text-xs font-bold mb-1.5 transition-colors duration-200"></label>
-                        <textarea id="noteText" required rows="4" class="w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm text-slate-800" placeholder="ここに入力してください..."></textarea>
+                        <textarea id="noteText" required rows="4" class="w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" placeholder="ここに入力してください..."></textarea>
                     </div>
                 </div>
                 <div class="flex items-center justify-end gap-2.5 p-5 border-t border-slate-100 flex-shrink-0">
@@ -332,7 +325,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, onSnapshot, updateDoc, deleteDoc, writeBatch, query, where, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, onSnapshot, updateDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- Firebase設定 ---
         const firebaseConfig = {
@@ -357,7 +350,7 @@
 
         // アプリケーション状態変数
         const STORAGE_KEY = "observation_workspace_v5_boards";
-        const HISTORY_KEY = "mitorinows_room_history_v1"; // 直近の部屋履歴保存用キー
+        const HISTORY_KEY = "mitorinows_room_history_v2";
         const DISTANCE_3CM_PX = 114; 
         const DISTANCE_5CM_PX = 190; 
 
@@ -371,7 +364,7 @@
         let allWorkspaces = [];
         let allRecords = [];
         let allDrawings = [];
-        let localDrawings = []; // 通信遅延対策用一時バッファ
+        let localDrawings = []; // 通信遅延、切断、プレビュー時の手書きフリッカー対策用バッファ
         let user = null;
         let currentWorkspaceId = null;
         let draggedElement = null, dragOffsetX = 0, dragOffsetY = 0;
@@ -386,11 +379,9 @@
         let currentStrokePoints = [], lastEraserCoords = null;
         let menuDelayTimer = null;
 
-        // Firebaseリアルタイム同期リスナー解除用ハンドラ
-        let activeWorkspaceUnsubscribe = null;
-        let recordsUnsubscribe = null;
-        let drawingsUnsubscribe = null;
-        let workspacesListUnsubscribe = null;
+        let enteredFromAdmin = false; // ボードへ入室した際のルート保持用フラグ
+        let unsubscribeWorkspaces = null; // 管理者画面用のリアルタイムリスナー解除用
+        let unsubscribeCurrentWorkspace = null; // 現在のボードのピンポイント監視リアルタイムリスナー解除用
 
         // --- Core Utility Functions ---
         function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' }[m])); }
@@ -419,7 +410,7 @@
             }, 3000);
         }
 
-        // --- Firebase Auth & Startup Logic ---
+        // --- Firebase Auth & Synced Listeners ---
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -428,6 +419,7 @@
                     await signInAnonymously(auth);
                 }
             } catch (error) {
+                // 初心者向けの完璧なエラーハンドリング
                 const loader = document.getElementById("appLoader");
                 if (loader) {
                     loader.innerHTML = `
@@ -453,268 +445,58 @@
         onAuthStateChanged(auth, (currentUser) => {
             user = currentUser;
             if (user) {
+                // 接続完了時にローディング画面をフェードアウト
                 const loader = document.getElementById("appLoader");
                 if (loader) loader.classList.add("hidden");
-                
-                // 初期の履歴情報入力欄の日付に今日を設定
-                document.getElementById("newRoomDate").value = new Date().toISOString().split('T')[0];
-                renderHistoryList();
+                document.getElementById("entryScreen").classList.remove("hidden");
+                renderHistory();
+                setupRealtimeListeners();
             }
         });
 
         initAuth();
 
-        // --- 履歴機能管理ロジック (LocalStorage) ---
-        function getHistory() {
-            try {
-                return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
-            } catch (e) {
-                return [];
-            }
-        }
-
-        // 履歴を保存
-        function saveHistory(history) {
-            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
-        }
-
-        // 履歴に追加
-        function addToHistory(id, name, date) {
-            let history = getHistory();
-            history = history.filter(item => item.id !== id);
-            history.unshift({ id, name, date: date || new Date().toISOString().split('T')[0] });
-            if (history.length > 3) history = history.slice(0, 3); // 最大3件を維持
-            saveHistory(history);
-        }
-
-        // 履歴一覧を描画
-        function renderHistoryList() {
-            const history = getHistory();
-            const section = document.getElementById("historySection");
-            const list = document.getElementById("historyList");
-            list.innerHTML = "";
-
-            if (history.length === 0) {
-                section.classList.add("hidden");
-                return;
-            }
-
-            section.classList.remove("hidden");
-            history.forEach(item => {
-                const btn = document.createElement("button");
-                btn.className = "w-full text-left bg-white hover:bg-indigo-50 border border-slate-100 hover:border-indigo-200 p-3 rounded-xl flex justify-between items-center transition shadow-sm group";
-                btn.onclick = () => openBoard(item.id);
-                btn.innerHTML = `
-                    <div class="truncate pr-2">
-                        <p class="text-xs font-bold text-slate-700 truncate group-hover:text-indigo-700 transition">${escapeHtml(item.name)}</p>
-                        <p class="text-[9px] text-slate-400 mt-0.5"><i class="fa-regular fa-calendar-days"></i> ${item.date}</p>
-                    </div>
-                    <div class="flex items-center gap-1.5 shrink-0 bg-slate-100 group-hover:bg-indigo-100 text-slate-500 group-hover:text-indigo-600 px-2 py-1 rounded-lg text-[10px] font-bold tracking-wider transition">
-                        ID: ${item.id} <i class="fa-solid fa-chevron-right text-[8px] opacity-70"></i>
-                    </div>
-                `;
-                list.appendChild(btn);
-            });
-        }
-
-        // --- ルームIDでの入室 & 作成処理 ---
-        async function joinRoomById() {
-            const input = document.getElementById("inputRoomId");
-            const roomId = input.value.trim();
-            if (!roomId) {
-                showToast("IDを入力してください", "error");
-                return;
-            }
-            if (roomId.length !== 5 || isNaN(roomId)) {
-                showToast("ルームIDは5桁の数字です", "error");
-                return;
-            }
-            openBoard(roomId);
-            input.value = "";
-        }
-
-        async function createAndJoinRoom() {
-            if (!user) {
-                showToast("データベースへの接続を待っています...", "info");
-                return;
-            }
-            const nameInput = document.getElementById("newRoomName");
-            const dateInput = document.getElementById("newRoomDate");
-            
-            const name = nameInput.value.trim();
-            const date = dateInput.value || new Date().toISOString().split('T')[0];
-
-            if (!name) {
-                showToast("授業・協議のタイトル名を入力してください", "error");
-                return;
-            }
-
-            showToast("協議ルームを立ち上げています...", "info");
-
-            try {
-                // 重複のない5桁のルームIDを安全に生成
-                const newId = await generateUniqueRoomId();
-                
-                await setDoc(doc(workspacesCol, newId), {
-                    name: name,
-                    date: date,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                });
-
-                showToast(`ルーム(ID: ${newId})を作成しました！`);
-                
-                nameInput.value = "";
-                dateInput.value = new Date().toISOString().split('T')[0];
-
-                // 自動で作成したルームに入室
-                openBoard(newId);
-
-            } catch (err) {
-                console.error("[createAndJoinRoom] failed:", err);
-                showToast("立ち上げに失敗しました", "error");
-            }
-        }
-
-        async function generateUniqueRoomId() {
-            let attempts = 0;
-            while (attempts < 10) {
-                const randId = String(Math.floor(10000 + Math.random() * 90000)); // 10000〜99999
-                const docRef = doc(workspacesCol, randId);
-                const docSnap = await getDoc(docRef);
-                if (!docSnap.exists()) {
-                    return randId;
-                }
-                attempts++;
-            }
-            return "board-" + Date.now(); // 万が一衝突が連続した場合のフォールバック
-        }
-
-        // --- 特定のボードのみをピンポイントで購読・通信最適化 ---
-        async function openBoard(id) {
+        // --- Core Realtime Listeners ---
+        function setupRealtimeListeners() {
             if (!user) return;
-            currentWorkspaceId = id;
 
-            // 既存の通信リスナーを完全にクリーンアップして解除
-            releaseActiveBoardListeners();
-
-            try {
-                const docRef = doc(workspacesCol, id);
-                const docSnap = await getDoc(docRef);
-                
-                if (!docSnap.exists()) {
-                    showToast(`ルームID: ${id} が存在しないか、既に削除されています。`, "error");
-                    // 存在しない履歴をローカルストレージから削除してUIをクリーンにする
-                    let history = getHistory().filter(item => item.id !== id);
-                    saveHistory(history);
-                    renderHistoryList();
-                    return;
-                }
-
-                const wsData = docSnap.data();
-                addToHistory(id, wsData.name, wsData.date);
-
-                // 1. 対象のワークスペース情報だけをピンポイントでリアルタイム監視
-                activeWorkspaceUnsubscribe = onSnapshot(docRef, (snap) => {
-                    if (snap.exists()) {
-                        const data = snap.data();
-                        document.getElementById("currentWorkspaceTitle").innerText = data.name;
-                        const dc = document.getElementById("currentWorkspaceDateContainer"), ds = document.getElementById("currentWorkspaceDate");
-                        if (data.date) {
-                            ds.innerText = new Date(data.date).toLocaleDateString("ja-JP") + " 実施";
-                            dc.classList.replace("hidden", "flex");
-                        } else {
-                            dc.classList.replace("flex", "hidden");
-                        }
-                    } else {
-                        goBackToHome();
-                        showToast("このルームは他の管理者によって削除されました。", "info");
+            // 共通エラーハンドラ
+            const handleSyncError = (label) => (err) => {
+                console.error("[" + label + " sync] error:", err);
+                if (err && err.code === 'permission-denied') {
+                    if (!document.getElementById("ruleWarningBanner")) {
+                        const banner = document.createElement("div");
+                        banner.id = "ruleWarningBanner";
+                        banner.className = "fixed top-0 left-0 right-0 z-[99998] bg-red-600 text-white text-xs px-4 py-3 shadow-lg flex items-center justify-between gap-3";
+                        banner.innerHTML = '<div class="flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation animate-pulse"></i><span><strong>Firestoreルール未設定です</strong>: Firebaseコンソール → Firestore Database → ルール で公開してください。設定後ページを再読み込み。</span></div><button onclick="this.parentNode.remove()" class="bg-red-700 hover:bg-red-800 px-3 py-1 rounded text-[10px]">閉じる</button>';
+                        document.body.appendChild(banner);
                     }
-                }, (err) => console.error("Workspace sync error:", err));
+                    showToast(label + "の同期失敗（権限エラー）", "error");
+                } else {
+                    showToast(label + "同期エラー: " + (err.message || err), "error");
+                }
+            };
 
-                // 2. この部屋に関連する付箋（records）だけをピンポイントにフィルタリング監視 (通信量を極小化)
-                const recordsQuery = query(recordsCol, where("workspaceId", "==", id));
-                recordsUnsubscribe = onSnapshot(recordsQuery, (snapshot) => {
-                    allRecords = [];
-                    snapshot.forEach(doc => { allRecords.push({ id: doc.id, ...doc.data() }); });
+            // 注: workspacesColの全同期は管理者画面でのみ行うように変更（リソース削減）
+
+            // 1. 付箋データの同期 (Rule 2により全件同期してクライアントサイドメモリフィルタ)
+            onSnapshot(recordsCol, (snapshot) => {
+                allRecords = [];
+                snapshot.forEach(doc => { allRecords.push({ id: doc.id, ...doc.data() }); });
+                if (currentWorkspaceId) {
                     renderBoards();
-                }, (err) => console.error("Records sync error:", err));
+                }
+            }, handleSyncError("付箋"));
 
-                // 3. この部屋に関連する手書き線（drawings）だけをピンポイントにフィルタリング監視
-                const drawingsQuery = query(drawingsCol, where("workspaceId", "==", id));
-                drawingsUnsubscribe = onSnapshot(drawingsQuery, (snapshot) => {
-                    allDrawings = [];
-                    snapshot.forEach(doc => { allDrawings.push({ id: doc.id, ...doc.data() }); });
-                    localDrawings = localDrawings.filter(ld => !allDrawings.some(ad => ad.id === ld.id));
+            // 2. 手書き描画の同期
+            onSnapshot(drawingsCol, (snapshot) => {
+                allDrawings = [];
+                snapshot.forEach(doc => { allDrawings.push({ id: doc.id, ...doc.data() }); });
+                localDrawings = localDrawings.filter(ld => !allDrawings.some(ad => ad.id === ld.id));
+                if (currentWorkspaceId) {
                     redrawDrawings();
-                }, (err) => console.error("Drawings sync error:", err));
-
-                // 画面遷移
-                document.getElementById("entryScreen").classList.add("hidden");
-                document.getElementById("homeScreen").classList.add("hidden");
-                document.getElementById("boardScreen").classList.replace("hidden", "flex");
-
-                // Canvasの描画初期化
-                setTimeout(() => {
-                    initDrawingCanvas();
-                }, 60);
-
-            } catch (err) {
-                console.error("Error opening board:", err);
-                showToast("ルームの読み込みに失敗しました", "error");
-            }
-        }
-
-        function releaseActiveBoardListeners() {
-            if (activeWorkspaceUnsubscribe) { activeWorkspaceUnsubscribe(); activeWorkspaceUnsubscribe = null; }
-            if (recordsUnsubscribe) { recordsUnsubscribe(); recordsUnsubscribe = null; }
-            if (drawingsUnsubscribe) { drawingsUnsubscribe(); drawingsUnsubscribe = null; }
-        }
-
-        // --- 管理者モードへの裏口案内 ---
-        function openAdminHome() {
-            if (!user) return;
-            if (workspacesListUnsubscribe) workspacesListUnsubscribe();
-            
-            showToast("全ワークスペース情報を同期中...", "info");
-            
-            // 管理者モードに入ったときだけ全件取得の監視リスナーを起動させて、普段の一般職員の通信量をゼロにする
-            workspacesListUnsubscribe = onSnapshot(workspacesCol, (snapshot) => {
-                allWorkspaces = [];
-                snapshot.forEach(doc => { allWorkspaces.push({ id: doc.id, ...doc.data() }); });
-                allWorkspaces.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
-                renderHomeScreen();
-            }, (err) => {
-                console.error("Admin workspaces sync error:", err);
-                showToast("管理者データのロードに失敗しました", "error");
-            });
-
-            document.getElementById("entryScreen").classList.add("hidden");
-            document.getElementById("boardScreen").classList.add("hidden");
-            document.getElementById("homeScreen").classList.replace("hidden", "flex");
-        }
-
-        function goBackToEntryFromAdmin() {
-            // 管理者一覧を抜けるときに全件同期リスナーを解除してリソースを完全に節約
-            if (workspacesListUnsubscribe) {
-                workspacesListUnsubscribe();
-                workspacesListUnsubscribe = null;
-            }
-            renderHistoryList();
-            document.getElementById("homeScreen").classList.add("hidden");
-            document.getElementById("boardScreen").classList.add("hidden");
-            document.getElementById("entryScreen").classList.remove("hidden");
-        }
-
-        // --- ボードからホーム(エントリー画面)へ戻る ---
-        function goBackToHome() {
-            currentWorkspaceId = null;
-            releaseActiveBoardListeners();
-
-            document.getElementById("boardScreen").classList.replace("flex", "hidden");
-            document.getElementById("homeScreen").classList.add("hidden");
-            document.getElementById("entryScreen").classList.remove("hidden");
-            renderHistoryList();
+                }
+            }, handleSyncError("手書き描画"));
         }
 
         function loadAllData() {
@@ -734,27 +516,155 @@
             }
         }
 
+        // --- ルームの「履歴機能」制御 ---
+        function saveToHistory(roomId, name) {
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            } catch(e) {
+                history = [];
+            }
+            history = history.filter(h => h.id !== roomId);
+            history.unshift({ id: roomId, name: name });
+            if (history.length > 3) history = history.slice(0, 3);
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById("historyList");
+            if (!list) return;
+            list.innerHTML = "";
+            let history = [];
+            try {
+                history = JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+            } catch(e) {
+                history = [];
+            }
+            if (history.length === 0) {
+                list.innerHTML = `<p class="text-[11px] text-slate-400 text-center py-2 italic font-medium">履歴はありません</p>`;
+                return;
+            }
+            history.forEach(item => {
+                const btn = document.createElement("button");
+                btn.className = "w-full text-left bg-indigo-50/60 hover:bg-indigo-100/80 text-indigo-950 font-bold px-4 py-2.5 rounded-xl text-xs transition border border-indigo-100/40 flex items-center justify-between group shadow-sm";
+                btn.onclick = () => { joinRoomById(item.id); };
+                btn.innerHTML = `
+                    <span class="truncate pr-2 flex items-center gap-1.5"><i class="fa-regular fa-clock text-indigo-400 text-[10px]"></i>${escapeHtml(item.name)}</span>
+                    <span class="bg-indigo-200 text-indigo-800 text-[9px] px-1.5 py-0.5 rounded font-mono group-hover:bg-indigo-600 group-hover:text-white transition">ID: ${item.id}</span>
+                `;
+                list.appendChild(btn);
+            });
+        }
+
+        // --- 5桁のルームIDの生成（重複なきようFirestoreで検証） ---
+        async function generateUniqueRoomId() {
+            let id = "";
+            let isUnique = false;
+            let attempts = 0;
+            while (!isUnique && attempts < 15) {
+                id = Math.floor(10000 + Math.random() * 90000).toString();
+                const dSnap = await getDoc(doc(workspacesCol, id));
+                if (!dSnap.exists()) {
+                    isUnique = true;
+                }
+                attempts++;
+            }
+            return id;
+        }
+
+        // --- 画面遷移制御 (3段階遷移) ---
+        async function joinRoomById(roomId) {
+            roomId = roomId.trim();
+            if (!/^\d{5}$/.test(roomId)) {
+                showToast("5桁の数字を入力してください", "error");
+                return;
+            }
+            showToast("ルームを探しています...", "info");
+            try {
+                const dSnap = await getDoc(doc(workspacesCol, roomId));
+                if (dSnap.exists()) {
+                    enteredFromAdmin = false;
+                    saveToHistory(roomId, dSnap.data().name);
+                    openBoard(roomId);
+                } else {
+                    showToast("該当するルームが見つかりません", "error");
+                }
+            } catch(e) {
+                showToast("接続エラーが発生しました", "error");
+            }
+        }
+
+        async function createQuickRoom(roomName) {
+            roomName = roomName.trim();
+            if (!roomName) {
+                showToast("授業名を入力してください", "error");
+                return;
+            }
+            showToast("ルームを新設しています...", "info");
+            try {
+                const newId = await generateUniqueRoomId();
+                await setDoc(doc(workspacesCol, newId), {
+                    name: roomName,
+                    date: new Date().toISOString().split('T')[0],
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                });
+                enteredFromAdmin = false;
+                saveToHistory(newId, roomName);
+                openBoard(newId);
+                showToast(`ルーム [${newId}] を立ち上げました！`);
+            } catch(e) {
+                showToast("作成に失敗しました", "error");
+            }
+        }
+
+        function showAdminHomeScreen() {
+            document.getElementById("entryScreen").classList.add("hidden");
+            document.getElementById("homeScreen").classList.remove("hidden");
+            
+            // 管理者モード：全ドキュメントをリアルタイム同期（この画面が表示されているときだけ購読）
+            if (unsubscribeWorkspaces) unsubscribeWorkspaces();
+            unsubscribeWorkspaces = onSnapshot(workspacesCol, (snapshot) => {
+                allWorkspaces = [];
+                snapshot.forEach(doc => { allWorkspaces.push({ id: doc.id, ...doc.data() }); });
+                allWorkspaces.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+                renderHomeScreen();
+            }, (err) => {
+                console.error("[workspaces sync] error:", err);
+            });
+        }
+
+        function exitAdminHomeScreen() {
+            if (unsubscribeWorkspaces) {
+                unsubscribeWorkspaces();
+                unsubscribeWorkspaces = null;
+            }
+            document.getElementById("homeScreen").classList.add("hidden");
+            document.getElementById("entryScreen").classList.remove("hidden");
+            renderHistory();
+        }
+
         // --- Board & Workspace Operations ---
-        function createNewWorkspace() {
+        async function createNewWorkspace() {
             if (!user) {
                 showToast("データベースへの接続を待っています。しばらくお待ちください...", "info");
                 return;
             }
-            openDialog({ type: 'prompt', title: '作成', message: 'タイトルを入力：', showDate: true }).then(async (res) => {
+            openDialog({ type: 'prompt', title: '作成', message: '授業タイトルを入力：', showDate: true }).then(async (res) => {
                 if (!res || !res.name) return;
                 try {
                     const newId = await generateUniqueRoomId();
-                    await setDoc(doc(workspacesCol, newId), { 
-                        name: res.name, 
-                        date: res.date || "", 
-                        createdAt: new Date().toISOString(), 
-                        updatedAt: new Date().toISOString() 
+                    await setDoc(doc(workspacesCol, newId), {
+                        name: res.name,
+                        date: res.date || "",
+                        createdAt: new Date().toISOString(),
+                        updatedAt: new Date().toISOString()
                     });
-                    showToast("ワークスペースを作成しました");
-                    // 作成後そのまま即オープン
+                    enteredFromAdmin = true;
                     openBoard(newId);
+                    showToast("ワークスペースを作成しました");
                 } catch (err) {
-                    console.error("[createNewWorkspace] failed:", err);
                     showToast("保存に失敗しました", "error");
                 }
             });
@@ -771,7 +681,6 @@
             });
         }
 
-        // --- UI bindings helper with sync context ---
         function renameCurrentWorkspace() {
             if (!user || !currentWorkspaceId) return;
             const b = allWorkspaces.find(x => x.id === currentWorkspaceId); if (!b) return;
@@ -798,7 +707,218 @@
             });
         }
 
-        // 授業ボード画面(付箋部分)のレンダリング
+        function openBoard(id) {
+            currentWorkspaceId = id;
+            
+            setDrawingMode('select');
+            document.getElementById("entryScreen").classList.add("hidden");
+            document.getElementById("homeScreen").classList.add("hidden");
+            document.getElementById("boardScreen").classList.replace("hidden", "flex");
+            
+            // 現在のワークスペース情報だけをFirestoreからピンポイント監視（超高効率）
+            if (unsubscribeCurrentWorkspace) unsubscribeCurrentWorkspace();
+            unsubscribeCurrentWorkspace = onSnapshot(doc(workspacesCol, id), (docSnap) => {
+                if (docSnap.exists()) {
+                    const current = { id: docSnap.id, ...docSnap.data() };
+                    
+                    // 内部リストを更新
+                    const idx = allWorkspaces.findIndex(x => x.id === id);
+                    if (idx >= 0) allWorkspaces[idx] = current;
+                    else allWorkspaces.push(current);
+
+                    document.getElementById("currentWorkspaceTitle").innerText = current.name;
+                    const dc = document.getElementById("currentWorkspaceDateContainer"), ds = document.getElementById("currentWorkspaceDate");
+                    if (current.date) {
+                        ds.innerText = new Date(current.date).toLocaleDateString("ja-JP") + " 実施";
+                        dc.classList.replace("hidden", "flex");
+                    } else {
+                        dc.classList.replace("flex", "hidden");
+                    }
+                } else {
+                    goBackToHome();
+                    showToast("ワークスペースが見つかりません。削除された可能性があります。", "error");
+                }
+            });
+            
+            const search = document.getElementById("filterSearch"); search.value = "";
+            search.className = "w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2.5";
+            
+            setTimeout(() => {
+                initDrawingCanvas(); 
+                renderBoards();
+            }, 60);
+        }
+
+        function goBackToHome() {
+            // リアルタイムリスナー解除
+            if (unsubscribeCurrentWorkspace) {
+                unsubscribeCurrentWorkspace();
+                unsubscribeCurrentWorkspace = null;
+            }
+            
+            document.getElementById("boardScreen").classList.replace("flex", "hidden");
+            currentWorkspaceId = null;
+            
+            if (enteredFromAdmin) {
+                showAdminHomeScreen();
+            } else {
+                document.getElementById("entryScreen").classList.remove("hidden");
+                renderHistory();
+            }
+        }
+
+        // --- Form Handler Binds ---
+        function handleJoinBtnClick() {
+            const input = document.getElementById("joinRoomId");
+            joinRoomById(input.value);
+            input.value = "";
+        }
+
+        function handleQuickCreateBtnClick() {
+            const input = document.getElementById("quickRoomName");
+            createQuickRoom(input.value);
+            input.value = "";
+        }
+
+        // --- Note Modal Operations ---
+        function openNoteModal(mode, type, recordId = null) {
+            document.getElementById("noteModalMode").value = mode;
+            document.getElementById("noteModalType").value = type;
+            document.getElementById("noteModalRecordId").value = recordId || "";
+            const t = NOTE_THEMES[type], textEl = document.getElementById("noteText");
+            
+            if (mode === 'add') {
+                textEl.value = "";
+                document.getElementById("noteModalTitle").innerHTML = `${t.icon} 付箋を追加`;
+                document.getElementById("noteModalSubmitBtn").innerHTML = '<i class="fa-solid fa-circle-plus"></i> ボードに貼る';
+            } else {
+                const r = allRecords.find(x => x.id === recordId);
+                textEl.value = r ? r.text : "";
+                document.getElementById("noteModalTitle").innerHTML = `${t.icon} 記録の編集`;
+                document.getElementById("noteModalSubmitBtn").innerHTML = '変更を保存';
+            }
+
+            // ヘッダーおよび保存ボタンのクラスを付箋の種別に応じて切り替える
+            document.getElementById("noteModalHeader").className = `p-5 border-b flex justify-between items-center flex-shrink-0 ${t.bg} ${t.border}`;
+            document.getElementById("noteModalSubmitBtn").className = `${t.btn} text-white font-bold py-2.5 px-6 rounded-xl shadow-md transition flex items-center gap-2 text-xs`;
+            
+            const labelEl = document.getElementById("noteModalInputLabel");
+            const noteTextEl = document.getElementById("noteText");
+
+            labelEl.innerHTML = `${t.icon} ${t.label}の内容`;
+
+            // 既存のカラークラスをきれいにリセットした上で再構築する
+            labelEl.className = "block text-xs font-bold mb-1.5 transition-colors duration-200";
+            noteTextEl.className = "w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm";
+
+            if (type === 'fact') {
+                labelEl.classList.add("text-sky-600");
+                noteTextEl.classList.add("focus:ring-sky-400", "focus:border-sky-400");
+            } else if (type === 'interpretation') {
+                labelEl.classList.add("text-amber-600");
+                noteTextEl.classList.add("focus:ring-amber-400", "focus:border-amber-400");
+            } else if (type === 'improvement') {
+                labelEl.classList.add("text-emerald-600");
+                noteTextEl.classList.add("focus:ring-emerald-400", "focus:border-emerald-400");
+            }
+
+            document.getElementById("noteModal").classList.replace("hidden", "flex");
+        }
+
+        function closeNoteModal() { document.getElementById("noteModal").classList.replace("flex", "hidden"); }
+
+        async function handleNoteSubmit(e) {
+            e.preventDefault();
+            if (!user || !currentWorkspaceId) return;
+
+            const mode = document.getElementById("noteModalMode").value;
+            const type = document.getElementById("noteModalType").value;
+            const text = document.getElementById("noteText").value.trim();
+            const recordId = document.getElementById("noteModalRecordId").value;
+
+            if (!text) return showToast("入力してください", "error");
+
+            try {
+                if (mode === 'add') {
+                    const newRecordId = "rec-" + Date.now();
+                    // 新規付箋サイズを1.2倍に (113 x 97) を完全に引き継ぎ
+                    await setDoc(doc(recordsCol, newRecordId), {
+                        workspaceId: currentWorkspaceId,
+                        type, text, x: 20 + Math.random() * 25, y: 18 + Math.random() * 25, w: 113, h: 97,
+                        connectedFactId: null, connectedInterpId: null, createdAt: new Date().toISOString()
+                    });
+                    showToast("追加しました");
+                } else {
+                    await updateDoc(doc(recordsCol, recordId), { text });
+                    showToast("変更を保存しました");
+                }
+                await updateDoc(doc(workspacesCol, currentWorkspaceId), { updatedAt: new Date().toISOString() });
+                closeNoteModal();
+            } catch (err) {
+                showToast("通信エラーが発生しました", "error");
+            }
+        }
+
+        async function deleteRecordWithConfirm(id) {
+            if (!user || !currentWorkspaceId) return;
+            const confirmed = await openDialog({ type: 'confirm', title: '確認', message: 'この付箋を削除しますか？', danger: true });
+            if (confirmed) {
+                try {
+                    const batch = writeBatch(db);
+                    allRecords.forEach(r => {
+                        if (r.workspaceId === currentWorkspaceId) {
+                            if (r.connectedFactId === id) batch.update(doc(recordsCol, r.id), { connectedFactId: null });
+                            if (r.connectedInterpId === id) batch.update(doc(recordsCol, r.id), { connectedInterpId: null });
+                        }
+                    });
+                    batch.delete(doc(recordsCol, id));
+                    await batch.commit();
+                    await updateDoc(doc(workspacesCol, currentWorkspaceId), { updatedAt: new Date().toISOString() });
+                    showToast("削除しました");
+                } catch (err) {
+                    showToast("削除に失敗しました", "error");
+                }
+            }
+        }
+
+        async function disconnectRecordDirectly(id, e) {
+            if (!user || !currentWorkspaceId) return; e.stopPropagation();
+            const r = allRecords.find(x => x.id === id); if (!r) return;
+            try {
+                const updates = {};
+                if (r.type === "interpretation" && r.connectedFactId) updates.connectedFactId = null;
+                if (r.type === "improvement" && r.connectedInterpId) updates.connectedInterpId = null;
+                await updateDoc(doc(recordsCol, id), updates);
+                await updateDoc(doc(workspacesCol, currentWorkspaceId), { updatedAt: new Date().toISOString() });
+                showToast("つながりを解除しました", "info");
+            } catch (err) {
+                showToast("解除できませんでした", "error");
+            }
+        }
+
+        // --- Render UI Boards ---
+        function renderHomeScreen() {
+            const g = document.getElementById("workspaceGrid"); g.innerHTML = "";
+            if (!allWorkspaces.length) { g.innerHTML = `<div class="col-span-full py-20 flex flex-col items-center justify-center text-slate-400 bg-white rounded-3xl border border-dashed"><i class="fa-solid fa-shapes text-5xl mb-4 opacity-40"></i><p class="text-sm font-semibold">ワークスペースがありません</p></div>`; return; }
+            allWorkspaces.forEach(b => {
+                const dt = b.date ? (new Date(b.date).toLocaleDateString("ja-JP") + " 実施") : (new Date(b.updatedAt).toLocaleDateString("ja-JP", {month:"2-digit", day:"2-digit", hour:"2-digit", minute:"2-digit"}) + " 更新");
+                const f = allRecords.filter(r=>r.workspaceId===b.id && r.type==='fact').length;
+                const i = allRecords.filter(r=>r.workspaceId===b.id && r.type==='interpretation').length;
+                const imp = allRecords.filter(r=>r.workspaceId===b.id && r.type==='improvement').length;
+                g.innerHTML += `
+                    <div class="bg-white border rounded-2xl p-4 shadow-sm hover:shadow-md transition relative group flex flex-col justify-between min-h-[114px]">
+                        <div class="cursor-pointer" onclick="enteredFromAdmin=true; openBoard('${b.id}')">
+                            <h3 class="font-extrabold text-slate-800 text-sm truncate pr-6">${escapeHtml(b.name)}</h3>
+                            <p class="text-[9px] text-slate-400 mt-1"><i class="fa-regular fa-clock"></i> ID: ${b.id} • ${dt}</p>
+                        </div>
+                        <div class="mt-4 border-t pt-2 flex justify-between">
+                            <div class="flex gap-1 flex-wrap"><span class="bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">事実 ${f}</span><span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">解釈 ${i}</span><span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">改善 ${imp}</span></div>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition"><button onclick="renameWorkspace('${b.id}', event)" class="text-slate-400 hover:text-slate-600 w-6 h-6 rounded hover:bg-slate-100"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteWorkspace('${b.id}', event)" class="text-slate-400 hover:text-red-500 w-6 h-6 rounded hover:bg-red-50"><i class="fa-solid fa-trash-can text-[9px]"></i></button></div>
+                        </div>
+                    </div>`;
+            });
+        }
+
         function renderBoards() {
             const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return;
             b.querySelectorAll('.sticky-note, .empty-message').forEach(n => n.remove());
@@ -806,7 +926,6 @@
             
             const recs = allRecords.filter(r => r.workspaceId === currentWorkspaceId && (!filter || r.text.toLowerCase().includes(filter)));
             
-            // 既存DOMを一切破壊しないように、 document.createElement + appendChild で追加するよう再構築
             if (!recs.length) { 
                 const emptyMsg = document.createElement("div");
                 emptyMsg.className = "empty-message absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-xs pointer-events-none z-10";
@@ -822,7 +941,7 @@
                 const card = document.createElement("div"); card.id = `note-${r.id}`;
                 card.className = `sticky-note absolute rounded-2xl border flex flex-col ${t.noteBg} ${t.noteBorder} ${t.text}`;
                 card.style.left = `${r.x}%`; card.style.top = `${r.y}%`; 
-                // 標準付箋サイズを1.2倍化 (113 x 97)
+                // 標準付箋1.2倍サイズ (113 x 97) を完全に引き継ぎ
                 card.style.width = `${r.w || 113}px`; card.style.height = `${r.h || 97}px`; card.style.zIndex = "10";
                 card.onmousedown = (e) => startDrag(e, card.id); card.ontouchstart = (e) => startDrag(e, card.id);
                 card.innerHTML = `
@@ -853,7 +972,7 @@
         function checkStickySnapping(draggedRec) {
             const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
             
-            // 1. 既存の結合からの「引き剥がし（距離190px以上）」判定
+            // 既存の結合からの引き剥がし判定
             if (draggedRec.type === "improvement" && draggedRec.connectedInterpId) {
                 const targetInterp = workspaceRecords.find(x => x.id === draggedRec.connectedInterpId);
                 if (targetInterp) {
@@ -861,7 +980,7 @@
                     if (dist >= DISTANCE_5CM_PX) {
                         isDraggedImproveDisconnected = true;
                     } else if (dist < DISTANCE_3CM_PX) {
-                        isDraggedImproveDisconnected = false; // 再接近したら切断をキャンセル
+                        isDraggedImproveDisconnected = false;
                     }
                 }
             }
@@ -878,14 +997,12 @@
                 }
             }
 
-            // ドラッグ中スナップ用の仮候補をリセット
             tempConnectionFactId = null;
             tempConnectionInterpId = null;
             tempConnectionImproveId = null;
 
-            // 2. 他の付箋への「新規吸着（距離114px以内）」判定
+            // 新規吸着判定
             if (draggedRec.type === "improvement") {
-                // 結合していない、または引き剥がされているときのみ吸着
                 if (!draggedRec.connectedInterpId || isDraggedImproveDisconnected) {
                     let nearest = null, minDist = Infinity;
                     workspaceRecords.forEach(o => {
@@ -901,7 +1018,6 @@
             }
 
             if (draggedRec.type === "interpretation") {
-                // a. 事実(fact)へ吸着する
                 if (!draggedRec.connectedFactId || isDraggedInterpDisconnected) {
                     let nearestFact = null, minDistFact = Infinity;
                     workspaceRecords.forEach(o => {
@@ -915,7 +1031,6 @@
                     }
                 }
                 
-                // b. 改善案(improvement)から吸着される
                 let nearestImp = null, minDistImp = Infinity;
                 workspaceRecords.forEach(o => {
                     if (o.type === "improvement") {
@@ -999,7 +1114,6 @@
                             }
 
                             batch.update(doc(recordsCol, r.id), updates);
-                            batch.update(doc(workspacesCol, currentWorkspaceId), { updatedAt: new Date().toISOString() });
                             await batch.commit();
                         } catch (err) {
                             showToast("位置の同期に失敗しました", "error");
@@ -1026,7 +1140,6 @@
                     const x = 4 + (i % cols) * (wP + 4), y = 5 + Math.floor(i / cols) * (hP + 5);
                     batch.update(doc(recordsCol, n.id.replace('note-', '')), { x, y });
                 });
-                batch.update(doc(workspacesCol, currentWorkspaceId), { updatedAt: new Date().toISOString() });
                 await batch.commit();
                 showToast("付箋を整列しました");
             } catch (err) { showToast("整列同期エラー", "error"); }
@@ -1065,7 +1178,6 @@
             if (draggedElement) {
                 const r = workspaceRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
                 if (r) {
-                    // 吸着時のガイドライン（点線）
                     if (tempConnectionFactId) { const t = workspaceRecords.find(x => x.id === tempConnectionFactId); if (t) drawSingleLine(svg, r, t, bR, "#f59e0b", true); }
                     if (tempConnectionImproveId) { const t = workspaceRecords.find(x => x.id === tempConnectionImproveId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
                     if (tempConnectionInterpId && r.type === "improvement") { const t = workspaceRecords.find(x => x.id === tempConnectionInterpId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
@@ -1081,8 +1193,7 @@
         }
 
         function adjustNotesOnResize() {
-            const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return; const bR = b.getBoundingClientRect(), active = allWorkspaces.find(x => x.id === currentWorkspaceId);
-            if (!active) return;
+            const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return; const bR = b.getBoundingClientRect();
             allRecords.forEach(r => {
                 if (r.workspaceId !== currentWorkspaceId) return;
                 const n = document.getElementById(`note-${r.id}`); if (!n) return;
@@ -1163,16 +1274,15 @@
             const b = document.getElementById("boardContainer"), n = b.querySelectorAll('.sticky-note');
             b.querySelectorAll('.resize-handle, .flex.items-center.z-30').forEach(e => e.style.display = 'none'); n.forEach(x => { x.style.boxShadow = 'none'; x.style.border = '1px solid #94a3b8'; });
             showToast("PDFを準備しています...", "info");
-            html2pdf().set({ margin: 6, filename: `見取り_${allWorkspaces.find(x => x.id === currentWorkspaceId)?.name || "ボード"}_${new Date().toISOString().split('T')[0]}.pdf`, html2canvas: { scale: 2, useCORS: true }, jsPDF: { orientation: 'landscape' } }).from(b).save().then(() => {
+            html2pdf().set({ margin: 6, filename: `見取り_${document.getElementById("currentWorkspaceTitle").innerText || "ボード"}_${new Date().toISOString().split('T')[0]}.pdf`, html2canvas: { scale: 2, useCORS: true }, jsPDF: { orientation: 'landscape' } }).from(b).save().then(() => {
                 b.querySelectorAll('.resize-handle, .flex.items-center.z-30').forEach(e => e.style.display = 'flex'); n.forEach(x => { x.style.boxShadow = ''; x.style.border = ''; }); showToast("保存完了");
             });
         }
         function exportCSV() {
-            const b = allWorkspaces.find(x => x.id === currentWorkspaceId); if (!b) return;
             const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
             if (!workspaceRecords.length) return showToast("データがありません", "error");
             let c = "\ufeffID,Type,Text,ParentID\n"; workspaceRecords.forEach(r => c += `${r.id},${NOTE_THEMES[r.type].label},"${r.text.replace(/"/g, '""')}",${r.type === 'interpretation' ? r.connectedFactId || '' : r.connectedInterpId || ''}\n`);
-            const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8" })); a.download = `${b.name}.csv`; a.click(); showToast("CSV出力完了");
+            const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8" })); a.download = `${document.getElementById("currentWorkspaceTitle").innerText || "board"}.csv`; a.click(); showToast("CSV出力完了");
         }
         
         // バックアップモーダルの表示・非表示制御
@@ -1243,7 +1353,6 @@
                     createdAt: new Date().toISOString() 
                 };
                 
-                // Firestoreからのリアルタイム同期を待つ間、フリッカーを防ぐ
                 localDrawings.push(newDrawing);
                 redrawDrawings();
 
@@ -1260,7 +1369,6 @@
 
         async function eraseStrokeAt(c) {
             if (!currentWorkspaceId) return;
-            // リアルタイム同期データ & ローカルの未同期バッファの両方をマージして消去判定
             const combinedDrawings = [...allDrawings, ...localDrawings].filter(d => d.workspaceId === currentWorkspaceId);
             if (!combinedDrawings.length) { redrawDrawings(); return; }
 
@@ -1282,7 +1390,6 @@
                 if (isHit) { hitId = combinedDrawings[i].id; break; }
             }
             if (hitId) { 
-                // 遅延なく即座にローカル配列から除外して消し去る
                 allDrawings = allDrawings.filter(d => d.id !== hitId);
                 localDrawings = localDrawings.filter(d => d.id !== hitId);
                 redrawDrawings();
@@ -1456,14 +1563,14 @@
         window.clearDrawingsWithConfirm = clearDrawingsWithConfirm;
         window.startDrag = startDrag;
         window.startResize = startResize;
-        window.joinRoomById = joinRoomById;
-        window.createAndJoinRoom = createAndJoinRoom;
-        window.openAdminHome = openAdminHome;
-        window.goBackToEntryFromAdmin = goBackToEntryFromAdmin;
+
+        window.handleJoinBtnClick = handleJoinBtnClick;
+        window.handleQuickCreateBtnClick = handleQuickCreateBtnClick;
+        window.showAdminHomeScreen = showAdminHomeScreen;
+        window.exitAdminHomeScreen = exitAdminHomeScreen;
 
         // --- Startup Initialization ---
         loadAllData();
-        renderHomeScreen();
         setupGlobalDragListeners();
         setupFloatingMenuDelay();
     </script>
