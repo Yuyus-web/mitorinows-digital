@@ -63,9 +63,9 @@
         <p class="text-[10px] text-slate-400">最初の接続には数秒かかる場合があります</p>
     </div>
 
-    <!-- エントリー画面 -->
+    <!-- エントリー画面 (左右レイアウト崩れ対策：lgブレイクポイント化 & max-widthの最適化) -->
     <div id="entryScreen" class="hidden flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-60px)]">
-        <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
+        <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-5xl w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
             
             <!-- ロゴ -->
             <div class="text-center flex flex-col items-center gap-2 border-b border-slate-100 pb-5">
@@ -78,12 +78,12 @@
                 </div>
             </div>
 
-            <!-- メインコンテンツ (左右2カラム構成) -->
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+            <!-- メインコンテンツ (iPad縦向きでは1カラムでゆったり配置、iPad横向き以上で2カラム化) -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
                 
-                <!-- 左カラム: ID入力 & 新規立ち上げフォーム (md:col-span-5) -->
-                <div class="md:col-span-5 flex flex-col gap-4">
-                    <!-- ルーム合流フォーム -->
+                <!-- 左カラム: ID入力 & 新規立ち上げフォーム (lg:col-span-5) -->
+                <div class="lg:col-span-5 flex flex-col gap-4">
+                    <!-- ルーム参加フォーム -->
                     <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
                         <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-right-to-bracket text-indigo-500"></i><span>5桁のルームIDで参加する</span></h3>
                         <div class="flex gap-2">
@@ -107,9 +107,9 @@
                 </div>
 
                 <!-- 右カラム: 最近使った履歴 (スクロール対応 & 削除機能統合) -->
-                <div class="md:col-span-7 flex flex-col gap-2.5 border-t md:border-t-0 md:border-l border-slate-100 pt-5 md:pt-0 md:pl-6">
+                <div class="lg:col-span-7 flex flex-col gap-2.5 border-t lg:border-t-0 lg:border-l border-slate-100 pt-5 lg:pt-0 lg:pl-6">
                     <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (履歴一覧)</span></h3>
-                    <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] overflow-y-auto pr-1 scrollbar-thin">
+                    <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] lg:max-h-none overflow-y-auto lg:overflow-y-visible pr-1 scrollbar-thin">
                         <!-- 履歴がJSで挿入されます -->
                     </div>
                 </div>
@@ -147,51 +147,60 @@
         <div id="workspaceGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
     </div>
 
-    <!-- ボード画面 -->
+    <!-- ボード画面 (ヘッダーのレスポンシブ設計を最適化：iPad縦向きは2段組、横向き以上で1段化) -->
     <div id="boardScreen" class="hidden flex-grow flex-col">
-        <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
-            <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div class="flex items-center gap-3 w-full md:w-auto">
-                    <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-11 h-11 rounded-xl transition flex items-center justify-center"><i class="fa-solid fa-house text-base"></i></button>
-                    <div class="flex flex-wrap items-center gap-2.5">
-                        <h2 id="currentWorkspaceTitle" class="text-xl font-extrabold text-slate-800 tracking-tight truncate max-w-[150px] sm:max-w-[240px]"></h2>
-                        <button onclick="renameCurrentWorkspace()" class="text-slate-400 hover:text-slate-600 p-1 rounded"><i class="fa-solid fa-pen text-xs"></i></button>
-                        <!-- コピー機能付きルームIDバッジ -->
-                        <button id="currentWorkspaceIdBadge" onclick="copyRoomIdToClipboard()" class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 px-2.5 py-1 rounded-xl font-mono text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm shrink-0" title="クリックしてルームIDをコピー">
-                            <i class="fa-regular fa-copy text-[10px]"></i><span id="currentWorkspaceIdText">ID: -----</span>
-                        </button>
+        <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40 py-3 lg:py-3.5">
+            <div class="max-w-7xl mx-auto px-4 flex flex-col lg:flex-row justify-between items-center gap-3 lg:gap-4">
+                
+                <!-- ヘッダー左側: タイトル & IDバッジ (iPad縦向き時は全幅、横向き以上でフィット) -->
+                <div class="flex items-center justify-between lg:justify-start gap-3 w-full lg:w-auto pb-2 lg:pb-0 border-b lg:border-b-0 border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl transition flex items-center justify-center"><i class="fa-solid fa-house text-sm md:text-base"></i></button>
+                        <div class="flex items-center gap-2.5">
+                            <h2 id="currentWorkspaceTitle" class="text-lg md:text-xl font-extrabold text-slate-800 tracking-tight truncate max-w-[120px] sm:max-w-[200px] md:max-w-[240px]"></h2>
+                            <button onclick="renameCurrentWorkspace()" class="text-slate-400 hover:text-slate-600 p-1 rounded"><i class="fa-solid fa-pen text-xs"></i></button>
+                        </div>
                     </div>
+                    <!-- コピー機能付きルームIDバッジ -->
+                    <button id="currentWorkspaceIdBadge" onclick="copyRoomIdToClipboard()" class="bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-800 px-2.5 py-1.5 rounded-xl font-mono text-[10px] md:text-[11px] font-bold transition flex items-center gap-1.5 shadow-sm shrink-0" title="クリックしてルームIDをコピー">
+                        <i class="fa-regular fa-copy text-[10px]"></i><span id="currentWorkspaceIdText">ID: -----</span>
+                    </button>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <div id="currentWorkspaceDateContainer" class="hidden items-center gap-1.5 bg-slate-100 text-slate-600 px-3 py-2.5 rounded-xl text-xs font-semibold">
+
+                <!-- ヘッダー右側: 操作ボタン群 (iPad縦向きでも絶対にはみ出さないよう gap とサイズを緻密に調整) -->
+                <div class="flex flex-wrap items-center justify-center lg:justify-end gap-1.5 sm:gap-2 w-full lg:w-auto">
+                    <div id="currentWorkspaceDateContainer" class="hidden items-center gap-1.5 bg-slate-100 text-slate-600 px-3 py-2 md:py-2.5 rounded-xl text-[11px] md:text-xs font-semibold">
                         <i class="fa-regular fa-calendar-days text-slate-400"></i><span id="currentWorkspaceDate"></span>
                     </div>
+                    
                     <div class="relative flex items-center">
-                        <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="キーワード検索..." class="w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2.5">
-                        <button onclick="toggleSearchInput()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-magnifying-glass text-base"></i></button>
+                        <input type="text" id="filterSearch" oninput="applyFilters()" placeholder="キーワード検索..." class="w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2 md:py-2.5">
+                        <button onclick="toggleSearchInput()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-magnifying-glass text-sm md:text-base"></i></button>
                     </div>
-                    <div class="h-8 w-[1px] bg-slate-200 mx-1"></div>
+                    
+                    <div class="h-6 w-[1px] bg-slate-200 mx-0.5 md:mx-1"></div>
                     
                     <div class="flex flex-col items-center">
-                        <button onclick="openNoteModal('add', 'fact')" class="bg-sky-500 hover:bg-sky-600 text-white w-11 h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-lg"></i></button>
-                        <span class="text-[9px] font-bold text-sky-700 mt-1">事実</span>
+                        <button onclick="openNoteModal('add', 'fact')" class="bg-sky-500 hover:bg-sky-600 text-white w-10 h-10 md:w-11 md:h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-base md:text-lg"></i></button>
+                        <span class="text-[8px] md:text-[9px] font-bold text-sky-700 mt-1">事実</span>
                     </div>
                     <div class="flex flex-col items-center">
-                        <button onclick="openNoteModal('add', 'interpretation')" class="bg-amber-500 hover:bg-amber-600 text-white w-11 h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-lg"></i></button>
-                        <span class="text-[9px] font-bold text-amber-700 mt-1">解釈</span>
+                        <button onclick="openNoteModal('add', 'interpretation')" class="bg-amber-500 hover:bg-amber-600 text-white w-10 h-10 md:w-11 md:h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-base md:text-lg"></i></button>
+                        <span class="text-[8px] md:text-[9px] font-bold text-amber-700 mt-1">解釈</span>
                     </div>
                     <div class="flex flex-col items-center">
-                        <button onclick="openNoteModal('add', 'improvement')" class="bg-emerald-500 hover:bg-emerald-600 text-white w-11 h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-lg"></i></button>
-                        <span class="text-[9px] font-bold text-emerald-700 mt-1">改善案</span>
+                        <button onclick="openNoteModal('add', 'improvement')" class="bg-emerald-500 hover:bg-emerald-600 text-white w-10 h-10 md:w-11 md:h-11 rounded-xl transition flex items-center justify-center shadow-md"><i class="fa-solid fa-plus text-base md:text-lg"></i></button>
+                        <span class="text-[8px] md:text-[9px] font-bold text-emerald-700 mt-1">改善案</span>
                     </div>
 
-                    <div class="h-8 w-[1px] bg-slate-200 mx-1"></div>
-                    <button onclick="alignStickyNotes()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-table-cells-large text-base"></i></button>
-                    <button onclick="toggleFullscreen()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-expand text-base"></i></button>
-                    <button onclick="exportBoardPDF()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-file-pdf text-red-600 text-base"></i></button>
-                    <button onclick="exportCSV()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-file-csv text-emerald-600 text-base"></i></button>
-                    <button onclick="openBackupModal()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-11 h-11 rounded-xl flex items-center justify-center shadow-sm"><i class="fa-solid fa-database text-indigo-600 text-base"></i></button>
+                    <div class="h-6 w-[1px] bg-slate-200 mx-0.5 md:mx-1"></div>
+                    <button onclick="alignStickyNotes()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="付箋をきれいに並べ替える"><i class="fa-solid fa-table-cells-large text-sm md:text-base"></i></button>
+                    <button onclick="toggleFullscreen()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="全画面表示"><i class="fa-solid fa-expand text-sm md:text-base"></i></button>
+                    <button onclick="exportBoardPDF()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="PDF出力"><i class="fa-solid fa-file-pdf text-red-600 text-sm md:text-base"></i></button>
+                    <button onclick="exportCSV()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="CSV出力"><i class="fa-solid fa-file-csv text-emerald-600 text-sm md:text-base"></i></button>
+                    <button onclick="openBackupModal()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-10 h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center shadow-sm" title="データベースデータ移行"><i class="fa-solid fa-database text-indigo-600 text-sm md:text-base"></i></button>
                 </div>
+                
             </div>
         </header>
 
