@@ -67,7 +67,7 @@
     <div id="entryScreen" class="hidden flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-60px)]">
         <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-5xl w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
             
-            <!-- ロゴ -->
+            <!-- ロゴ (ホーム画面のタイトルを「見取りのワークショップDigital」に修正) -->
             <div class="text-center flex flex-col items-center gap-2 border-b border-slate-100 pb-5">
                 <div class="bg-indigo-600 text-white p-3 rounded-2xl shadow-lg shadow-indigo-100">
                     <i class="fa-solid fa-cubes text-3xl"></i>
@@ -106,7 +106,7 @@
                     </div>
                 </div>
 
-                <!-- 右カラム (文言およびアイコンを「最近使ったボード」から「ボード一覧」に変更) -->
+                <!-- 右カラム -->
                 <div class="lg:col-span-7 flex flex-col gap-2.5 border-t lg:border-t-0 lg:border-l border-slate-100 pt-5 lg:pt-0 lg:pl-6">
                     <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-folder-open text-indigo-400"></i><span>ボード一覧</span></h3>
                     <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] lg:max-h-none overflow-y-auto lg:overflow-y-visible pr-1 scrollbar-thin">
@@ -1014,7 +1014,7 @@
                         </div>
                         <div class="mt-4 border-t pt-2 flex justify-between">
                             <div class="flex gap-1 flex-wrap"><span class="bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">事実 ${f}</span><span class="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">解釈 ${i}</span><span class="bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full text-[9px] font-bold">改善 ${imp}</span></div>
-                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition"><button onclick="renameWorkspace('${b.id}', event)" class="text-slate-400 hover:text-slate-600 w-6 h-6 rounded hover:bg-slate-100"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteWorkspace('${b.id}', event)" class="text-slate-400 hover:text-red-550 w-6 h-6 rounded hover:bg-red-55"><i class="fa-solid fa-trash-can text-[9px]"></i></button></div>
+                            <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition"><button onclick="renameWorkspace('${b.id}', event)" class="text-slate-400 hover:text-slate-600 w-6 h-6 rounded hover:bg-slate-100"><i class="fa-solid fa-pen text-[9px]"></i></button><button onclick="deleteWorkspace('${b.id}', event)" class="text-slate-400 hover:text-red-555 w-6 h-6 rounded hover:bg-red-55"><i class="fa-solid fa-trash-can text-[9px]"></i></button></div>
                         </div>
                     </div>`;
             });
@@ -1245,6 +1245,56 @@
             } catch (err) { showToast("整列同期エラー", "error"); }
         }
 
+        // --- Connection Drawing ---
+        function drawConnections() {
+            const svg = document.getElementById("connectorSvg"); if (!svg) return; svg.innerHTML = "";
+            const bR = document.getElementById("boardContainer").getBoundingClientRect();
+            const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
+            
+            workspaceRecords.forEach(r => {
+                if (r.type === "interpretation" && r.connectedFactId) {
+                    const f = workspaceRecords.find(x => x.id === r.connectedFactId);
+                    if (f) {
+                        const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedInterpDisconnected);
+                        drawSingleLine(svg, r, f, bR, isDisconnected ? "#ef4444" : "#f59e0b", isDisconnected);
+                    }
+                }
+                if (r.type === "improvement" && r.connectedInterpId) {
+                    const i = workspaceRecords.find(x => x.id === r.connectedInterpId);
+                    if (i) {
+                        const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedImproveDisconnected);
+                        drawSingleLine(svg, r, i, bR, isDisconnected ? "#ef4444" : "#10b981", isDisconnected);
+                    }
+                }
+            });
+            if (draggedElement) {
+                const r = workspaceRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
+                if (r) {
+                    if (tempConnectionFactId) { const t = workspaceRecords.find(x => x.id === tempConnectionFactId); if (t) drawSingleLine(svg, r, t, bR, "#f59e0b", true); }
+                    if (tempConnectionImproveId) { const t = workspaceRecords.find(x => x.id === tempConnectionImproveId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
+                    if (tempConnectionInterpId && r.type === "improvement") { const t = workspaceRecords.find(x => x.id === tempConnectionInterpId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
+                }
+            }
+        }
+
+        function drawSingleLine(s, rA, rB, bR, c, isPre) {
+            const A = document.getElementById(`note-${rA.id}`), B = document.getElementById(`note-${rB.id}`); if (!A || !B) return;
+            const a = A.getBoundingClientRect(), b = B.getBoundingClientRect(), x1 = a.left - bR.left + a.width / 2, y1 = a.top - bR.top + a.height / 2, x2 = b.left - bR.left + b.width / 2, y2 = b.top - bR.top + b.height / 2;
+            const l = document.createElementNS("http://www.w3.org/2000/svg", "line"); l.setAttribute("x1", x1); l.setAttribute("y1", y1); l.setAttribute("x2", x2); l.setAttribute("y2", y2); l.setAttribute("stroke", c); l.setAttribute("stroke-width", isPre ? "3" : "5"); l.setAttribute("stroke-linecap", "round"); if (isPre) l.setAttribute("stroke-dasharray", "8,6"); l.setAttribute("opacity", isPre ? "0.75" : "0.85"); s.appendChild(l);
+            const ci = document.createElementNS("http://www.w3.org/2000/svg", "circle"); ci.setAttribute("cx", (x1 + x2) / 2); ci.setAttribute("cy", (y1 + y2) / 2); ci.setAttribute("r", isPre ? "5" : "7"); ci.setAttribute("fill", c); ci.setAttribute("stroke", "#fff"); ci.setAttribute("stroke-width", "2"); s.appendChild(ci);
+        }
+
+        function adjustNotesOnResize() {
+            const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return; const bR = b.getBoundingClientRect();
+            allRecords.forEach(r => {
+                if (r.workspaceId !== currentWorkspaceId) return;
+                const n = document.getElementById(`note-${r.id}`); if (!n) return;
+                let l = (r.x / 100) * bR.width, t = (r.y / 100) * bR.height;
+                if (l + n.offsetWidth > bR.width) l = bR.width - n.offsetWidth; if (l < 0) l = 0; if (t + n.offsetHeight > bR.height) t = bR.height - n.offsetHeight; if (t < 0) t = 0;
+                r.x = (l / bR.width) * 100; r.y = (t / bR.height) * 100; n.style.left = `${r.x}%`; n.style.top = `${r.y}%`; adjustNoteFontSize(n);
+            }); redrawDrawings(); saveAllData();
+        }
+
         // --- Custom Dialog Component ---
         function openDialog(config) {
             return new Promise(resolve => {
@@ -1287,71 +1337,6 @@
                 cancelBtn.onclick = () => { clean(); resolve(config.type === 'confirm' ? false : null); };
                 inp.onkeydown = (e) => { if (e.key === 'Enter') okBtn.onclick(); };
             });
-        }
-
-        // --- Fullscreen System ---
-        function toggleFullscreen() {
-            const b = document.getElementById("boardContainer");
-            if (b.classList.contains("pseudo-fullscreen-active")) disablePseudoFullscreen(); else enablePseudoFullscreen();
-        }
-        function enablePseudoFullscreen() {
-            const b = document.getElementById("boardContainer"); b.classList.add("pseudo-fullscreen-active", "prevent-pan");
-            document.getElementById("fullscreenMenu").classList.remove("hidden");
-            document.documentElement.style.overflow = 'hidden'; document.documentElement.style.overscrollBehavior = 'none';
-            document.body.style.overflow = 'hidden'; document.body.style.overscrollBehavior = 'none';
-            setTimeout(() => { adjustNotesOnResize(); redrawDrawings(); }, 100);
-        }
-        function disablePseudoFullscreen() {
-            const b = document.getElementById("boardContainer"); b.classList.remove("pseudo-fullscreen-active");
-            if (opMode === 'select') b.classList.remove("prevent-pan");
-            document.getElementById("fullscreenMenu").classList.add("hidden");
-            document.documentElement.style.overflow = ''; document.documentElement.style.overscrollBehavior = '';
-            document.body.style.overflow = ''; document.body.style.overscrollBehavior = '';
-            setTimeout(() => { adjustNotesOnResize(); redrawDrawings(); }, 100);
-        }
-        function disableFullscreenAPI() { disablePseudoFullscreen(); }
-
-        // --- Export & Backup ---
-        function exportBoardPDF() {
-            const b = document.getElementById("boardContainer"), n = b.querySelectorAll('.sticky-note');
-            b.querySelectorAll('.resize-handle, .flex.items-center.z-30').forEach(e => e.style.display = 'none'); n.forEach(x => { x.style.boxShadow = 'none'; x.style.border = '1px solid #94a3b8'; });
-            showToast("PDFを準備しています...", "info");
-            html2pdf().set({ margin: 6, filename: `見取り_${document.getElementById("currentWorkspaceTitle").innerText || "ボード"}_${new Date().toISOString().split('T')[0]}.pdf`, html2canvas: { scale: 2, useCORS: true }, jsPDF: { orientation: 'landscape' } }).from(b).save().then(() => {
-                b.querySelectorAll('.resize-handle, .flex.items-center.z-30').forEach(e => e.style.display = 'flex'); n.forEach(x => { x.style.boxShadow = ''; x.style.border = ''; }); showToast("保存完了");
-            });
-        }
-        function exportCSV() {
-            const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
-            if (!workspaceRecords.length) return showToast("データがありません", "error");
-            let c = "\ufeffID,Type,Text,ParentID\n"; workspaceRecords.forEach(r => c += `${r.id},${NOTE_THEMES[r.type].label},"${r.text.replace(/"/g, '""')}",${r.type === 'interpretation' ? r.connectedFactId || '' : r.connectedInterpId || ''}\n`);
-            const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([c], { type: "text/csv;charset=utf-8" })); a.download = `${document.getElementById("currentWorkspaceTitle").innerText || "board"}.csv`; a.click(); showToast("CSV出力完了");
-        }
-        
-        function exportDataJSON() {
-            const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ boards: allWorkspaces, records: allRecords, drawings: allDrawings, exportedAt: new Date().toISOString() })], { type: "application/json" })); a.download = `backup_${new Date().toISOString().split('T')[0]}.json`; a.click(); showToast("バックアップ生成");
-        }
-        function importDataJSON() {
-            const f = document.getElementById("importFile").files[0]; if (!f) return showToast("ファイルを選択してください", "error");
-            const reader = new FileReader(); reader.onload = async (e) => {
-                try {
-                    const d = JSON.parse(e.target.result);
-                    if (await openDialog({ type: 'confirm', title: '復元', message: 'データベース内の全データをインポートデータで上書きしますか？', danger: true })) {
-                        const batch = writeBatch(db);
-                        allWorkspaces.forEach(w => batch.delete(doc(workspacesCol, w.id)));
-                        allRecords.forEach(r => batch.delete(doc(recordsCol, r.id)));
-                        allDrawings.forEach(dr => batch.delete(doc(drawingsCol, dr.id)));
-                        
-                        if (d.boards) d.boards.forEach(w => batch.set(doc(workspacesCol, w.id), { name: w.name, date: w.date || "", createdAt: w.createdAt || new Date().toISOString(), updatedAt: w.updatedAt || new Date().toISOString() }));
-                        if (d.records) d.records.forEach(r => batch.set(doc(recordsCol, r.id), r));
-                        if (d.drawings) d.drawings.forEach(dr => batch.set(doc(drawingsCol, dr.id), dr));
-                        
-                        await batch.commit();
-                        closeBackupModal();
-                        goBackToHome(); 
-                        showToast("復元完了しました！");
-                    }
-                } catch (err) { showToast("解析に失敗しました", "error"); }
-            }; reader.readAsText(f);
         }
 
         // --- Drawing Canvas Logic ---
@@ -1593,17 +1578,6 @@
             el.style.zIndex = "100";
             e.stopPropagation();
             e.preventDefault();
-        }
-
-        function adjustNotesOnResize() {
-            const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return; const bR = b.getBoundingClientRect();
-            allRecords.forEach(r => {
-                if (r.workspaceId !== currentWorkspaceId) return;
-                const n = document.getElementById(`note-${r.id}`); if (!n) return;
-                let l = (r.x / 100) * bR.width, t = (r.y / 100) * bR.height;
-                if (l + n.offsetWidth > bR.width) l = bR.width - n.offsetWidth; if (l < 0) l = 0; if (t + n.offsetHeight > bR.height) t = bR.height - n.offsetHeight; if (t < 0) t = 0;
-                r.x = (l / bR.width) * 100; r.y = (t / bR.height) * 100; n.style.left = `${r.x}%`; n.style.top = `${r.y}%`; adjustNoteFontSize(n);
-            }); redrawDrawings(); saveAllData();
         }
 
         // --- Global Bindings for HTML ---
