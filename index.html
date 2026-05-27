@@ -63,9 +63,9 @@
         <p class="text-[10px] text-slate-400">最初の接続には数秒かかる場合があります</p>
     </div>
 
-    <!-- エントリー画面 -->
+    <!-- エントリー画面 (左右2カラム構成・グリッドレイアウトへ進化) -->
     <div id="entryScreen" class="hidden flex-grow flex items-center justify-center p-4 min-h-[calc(100vh-60px)]">
-        <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
+        <div class="bg-white/90 backdrop-blur-sm border border-slate-200 rounded-3xl p-6 sm:p-8 max-w-4xl w-full shadow-2xl flex flex-col gap-6 animate-fade-in">
             
             <!-- ロゴ -->
             <div class="text-center flex flex-col items-center gap-2 border-b border-slate-100 pb-5">
@@ -78,34 +78,43 @@
                 </div>
             </div>
 
-            <!-- ルーム合流フォーム -->
-            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
-                <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-right-to-bracket text-indigo-500"></i><span>5桁のルームIDで合流する</span></h3>
-                <div class="flex gap-2">
-                    <input type="text" id="joinRoomId" placeholder="例: 59281" maxlength="5" pattern="\d*" class="flex-grow px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-base focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200 shadow-inner font-mono text-center tracking-widest text-slate-800 placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300">
-                    <button onclick="handleJoinBtnClick()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-md shadow-indigo-100 shrink-0 flex items-center gap-1">
-                        <span>参画</span><i class="fa-solid fa-chevron-right text-[10px]"></i>
-                    </button>
-                </div>
-            </div>
+            <!-- メインコンテンツを2カラムに再設計 -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-stretch">
+                
+                <!-- 左カラム: ID入力 & 新規立ち上げフォーム (md:col-span-5) -->
+                <div class="md:col-span-5 flex flex-col gap-4">
+                    <!-- ルーム合流フォーム -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
+                        <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-right-to-bracket text-indigo-500"></i><span>5桁のルームIDで合流する</span></h3>
+                        <div class="flex gap-2">
+                            <input type="text" id="joinRoomId" placeholder="例: 59281" maxlength="5" pattern="\d*" class="flex-grow px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-base focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200 shadow-inner font-mono text-center tracking-widest text-slate-800 placeholder:tracking-normal placeholder:font-sans placeholder:text-slate-300">
+                            <button onclick="handleJoinBtnClick()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition shadow-md shadow-indigo-100 shrink-0 flex items-center gap-1">
+                                <span>参画</span><i class="fa-solid fa-chevron-right text-[10px]"></i>
+                            </button>
+                        </div>
+                    </div>
 
-            <!-- クイック新規作成フォーム -->
-            <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
-                <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-circle-plus text-emerald-500"></i><span>新しく協議（授業）を立ち上げる</span></h3>
-                <div class="flex flex-col gap-2">
-                    <input type="text" id="quickRoomName" placeholder="授業名を入力（例：5年1組 算数）" class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all duration-200 shadow-inner text-slate-800">
-                    <button onclick="handleQuickCreateBtnClick()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-emerald-100 flex items-center justify-center gap-1.5">
-                        <i class="fa-solid fa-plus"></i><span>新規ボード作成して合流</span>
-                    </button>
+                    <!-- クイック新規作成フォーム -->
+                    <div class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex flex-col gap-2.5 shadow-sm">
+                        <h3 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5"><i class="fa-solid fa-circle-plus text-emerald-500"></i><span>新しく協議（授業）を立ち上げる</span></h3>
+                        <div class="flex flex-col gap-2">
+                            <input type="text" id="quickRoomName" placeholder="授業名を入力（例：5年1組 算数）" class="px-3.5 py-2.5 bg-white border border-slate-200 rounded-xl text-xs focus:ring-2 focus:ring-emerald-400 focus:outline-none transition-all duration-200 shadow-inner text-slate-800">
+                            <button onclick="handleQuickCreateBtnClick()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs transition shadow-md shadow-emerald-100 flex items-center justify-center gap-1.5">
+                                <i class="fa-solid fa-plus"></i><span>新規ボード作成して合流</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
 
-            <!-- 最近使った履歴 (最大10表示対応 & 縦スクロール対応) -->
-            <div class="flex flex-col gap-2">
-                <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (最大10件)</span></h3>
-                <div id="historyList" class="flex flex-col gap-1.5 max-h-[200px] overflow-y-auto pr-1 scrollbar-thin">
-                    <!-- 履歴がJSで挿入されます -->
+                <!-- 右カラム: 最近使った履歴 (md:col-span-7 / 2列グリッドでスクロール不要の配置) -->
+                <div class="md:col-span-7 flex flex-col gap-2.5 border-t md:border-t-0 md:border-l border-slate-100 pt-5 md:pt-0 md:pl-6">
+                    <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-clock-rotate-left text-indigo-400"></i><span>最近使ったボード (最大10件を表示)</span></h3>
+                    <!-- 2列に綺麗に並べて一度に見えるようにグリッドを拡張 -->
+                    <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[350px] md:max-h-none overflow-y-auto md:overflow-y-visible pr-1 scrollbar-none">
+                        <!-- 履歴がJSで挿入されます -->
+                    </div>
                 </div>
+
             </div>
 
             <!-- 管理者用リンク -->
@@ -425,7 +434,7 @@
                     loader.innerHTML = `
                         <div class="bg-red-50 text-red-700 p-6 rounded-3xl max-w-md text-center shadow-2xl border border-red-200 animate-fade-in handwritten">
                             <i class="fa-solid fa-triangle-exclamation text-4xl mb-4 text-red-600 animate-bounce"></i>
-                            <h3 class="font-extrabold text-base mb-2">Firebase接続エラー</h3>
+                            <i class="font-extrabold text-base mb-2">Firebase接続エラー</i>
                             <p class="text-xs leading-relaxed mb-4 text-left">
                                 原因: Firebaseプロジェクト側で「匿名サインイン」が有効化されていません。<br><br>
                                 <strong>【今すぐ直す手順】</strong><br>
@@ -542,7 +551,7 @@
                 history = [];
             }
             if (history.length === 0) {
-                list.innerHTML = `<p class="text-[11px] text-slate-400 text-center py-2 italic font-medium">履歴はありません</p>`;
+                list.innerHTML = `<p class="col-span-full text-[11px] text-slate-400 text-center py-6 italic font-medium bg-slate-50 border border-dashed border-slate-200 rounded-2xl">履歴はありません</p>`;
                 return;
             }
             history.forEach(item => {
@@ -778,6 +787,7 @@
             input.value = "";
         }
 
+        // --- Form Handler Binds ---
         function handleQuickCreateBtnClick() {
             const input = document.getElementById("quickRoomName");
             createQuickRoom(input.value);
