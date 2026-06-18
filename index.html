@@ -39,8 +39,6 @@
         .board-canvas {
             min-height: 600px;
             background-color: #ffffff;
-            background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px);
-            background-size: 24px 24px;
             position: relative;
         }
         .pseudo-fullscreen-active {
@@ -62,6 +60,9 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
+
+    <!-- 消しゴムカーソル -->
+    <div id="eraserCursor" class="hidden fixed rounded-full bg-red-500/15 border-[1.5px] border-red-500/40 pointer-events-none z-[999999]" style="transform: translate(-50%, -50%);"></div>
 
     <!-- 起動時接続用ローディング画面 -->
     <div id="appLoader" class="fixed inset-0 bg-slate-50/95 z-[100000] flex flex-col items-center justify-center gap-4 p-4">
@@ -113,7 +114,7 @@
                     </div>
                 </div>
 
-                <!-- 右カラム (文言およびアイコンを「ボード一覧」に変更) -->
+                <!-- 右カラム -->
                 <div class="lg:col-span-7 flex flex-col gap-2.5 border-t lg:border-t-0 lg:border-l border-slate-100 pt-5 lg:pt-0 lg:pl-6">
                     <h3 class="text-xs font-extrabold text-slate-600 flex items-center gap-1.5 px-1"><i class="fa-solid fa-folder-open text-indigo-400"></i><span>ボード一覧</span></h3>
                     <div id="historyList" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[320px] lg:max-h-none overflow-y-auto lg:overflow-y-visible pr-1 scrollbar-thin">
@@ -154,12 +155,11 @@
         <div id="workspaceGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"></div>
     </div>
 
-    <!-- ボード画面 (iPad対応ヘッダーUI極限コンパクト化仕様) -->
+    <!-- ボード画面 -->
     <div id="boardScreen" class="hidden flex-grow flex-col">
         <header class="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40 py-1 md:py-1.5">
             <div class="max-w-7xl mx-auto px-2 sm:px-3 flex flex-col lg:flex-row justify-between items-center gap-1.5 lg:gap-2">
                 
-                <!-- ヘッダー左側: タイトル & IDバッジ (iPadや狭い画面でも幅を極力抑える) -->
                 <div class="flex items-center justify-between lg:justify-start gap-2 w-full lg:w-auto pb-1 lg:pb-0 border-b lg:border-b-0 border-slate-100">
                     <div class="flex items-center gap-1.5">
                         <button onclick="goBackToHome()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg transition flex items-center justify-center"><i class="fa-solid fa-house text-[10px] sm:text-xs"></i></button>
@@ -174,7 +174,6 @@
                     </button>
                 </div>
 
-                <!-- ヘッダー右側: 操作ボタン群 (iPadなどのタブレットでも絶対に改行・崩れが起きないようgap、padding、サイズを究極に縮小) -->
                 <div class="flex flex-wrap items-center justify-center lg:justify-end gap-1 sm:gap-1.5 w-full lg:w-auto">
                     <div id="currentWorkspaceDateContainer" class="hidden items-center gap-0.5 bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-lg text-[9px] sm:text-[10px] font-semibold">
                         <i class="fa-regular fa-calendar-days text-slate-400"></i><span id="currentWorkspaceDate"></span>
@@ -202,8 +201,6 @@
 
                     <div class="h-4 w-[1px] bg-slate-200 mx-0.5"></div>
                     
-                    <!-- ボード操作アクション (データ移行がCSVの右隣に確実に収まるレイアウト) -->
-                    <button onclick="alignStickyNotes()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="きれいに整列"><i class="fa-solid fa-table-cells-large text-[10px] sm:text-xs"></i></button>
                     <button onclick="toggleFullscreen()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="全画面表示"><i class="fa-solid fa-expand text-[10px] sm:text-xs"></i></button>
                     <button onclick="exportBoardPDF()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="PDF出力"><i class="fa-solid fa-file-pdf text-red-600 text-[10px] sm:text-xs"></i></button>
                     <button onclick="exportCSV()" class="bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shadow-sm" title="CSV出力"><i class="fa-solid fa-file-csv text-emerald-600 text-[10px] sm:text-xs"></i></button>
@@ -215,16 +212,37 @@
 
         <!-- ワークスペースを上下左右に最大化するためのコンテナ設定 -->
         <main class="flex-grow w-full mx-auto px-1 sm:px-2 py-1.5 sm:py-2 flex flex-col relative">
-            <div id="boardContainer" class="board-canvas rounded-2xl border border-slate-200 shadow-inner overflow-hidden w-full flex-grow relative">
-                <svg id="connectorSvg" class="absolute inset-0 pointer-events-none w-full h-full z-[1]"></svg>
-                <canvas id="drawingCanvas" class="absolute inset-0 pointer-events-none w-full h-full z-[15]"></canvas>
+            <div id="boardContainer" class="board-canvas rounded-2xl border border-slate-200 shadow-inner overflow-hidden w-full flex-grow relative bg-slate-50">
+                
+                <!-- ズーム・移動可能な実体ボード領域 (後方互換性と3:2比率を保つ3000px * 2000pxキャンバス) -->
+                <div id="boardViewport" class="absolute pointer-events-auto shadow-2xl" style="width: 3000px; height: 2000px; left: 0px; top: 0px; transform: scale(1.0); transform-origin: 0 0;">
+                    
+                    <!-- 背景デザイン -->
+                    <div class="absolute inset-0 bg-white" style="background-image: radial-gradient(#e2e8f0 1.5px, transparent 1.5px); background-size: 24px 24px;"></div>
+                    
+                    <svg id="connectorSvg" class="absolute inset-0 pointer-events-none w-full h-full z-[1]"></svg>
+                    <canvas id="drawingCanvas" class="absolute inset-0 pointer-events-none w-full h-full z-[15]"></canvas>
+                    
+                </div>
+
+                <!-- ズーム操作用・情報インジケーターUI -->
+                <div class="absolute bottom-3 right-3 z-[40] bg-white/90 backdrop-blur-sm border border-slate-200 px-2.5 py-1.5 rounded-xl text-[10px] font-bold text-slate-500 shadow-lg flex items-center gap-2.5 pointer-events-auto">
+                    <div class="flex items-center gap-1">
+                        <i class="fa-solid fa-magnifying-glass text-slate-400 text-[9px]"></i>
+                        <span id="zoomIndicator">100%</span>
+                    </div>
+                    <div class="h-3 w-[1px] bg-slate-200"></div>
+                    <button onclick="resetZoomAndCenter()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-lg transition-colors flex items-center gap-1" title="画面サイズに合わせてフィット表示">
+                        <i class="fa-solid fa-expand text-[9px]"></i><span>全体フィット</span>
+                    </button>
+                </div>
 
                 <!-- 手書きツールバー -->
                 <div id="drawingToolbar" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()" class="absolute bottom-3 left-3 z-[40] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl shadow-lg p-1.5 flex flex-col gap-2 opacity-85 hover:opacity-100">
                     <div class="flex flex-col gap-1 border-b border-slate-100 pb-2">
-                        <button id="btn-mode-select" onclick="setDrawingMode('select')" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 shadow-sm flex items-center justify-center"><i class="fa-solid fa-arrow-pointer text-xs"></i></button>
-                        <button id="btn-mode-pen" onclick="setDrawingMode('pen')" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center"><i class="fa-solid fa-pen-nib text-xs"></i></button>
-                        <button id="btn-mode-eraser" onclick="setDrawingMode('eraser')" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center"><i class="fa-solid fa-eraser text-xs"></i></button>
+                        <button id="btn-mode-select" onclick="setDrawingMode('select')" class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 shadow-sm flex items-center justify-center" title="選択・移動（ピンチ操作でズーム可）"><i class="fa-solid fa-arrow-pointer text-xs"></i></button>
+                        <button id="btn-mode-pen" onclick="setDrawingMode('pen')" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center" title="手書きペン"><i class="fa-solid fa-pen-nib text-xs"></i></button>
+                        <button id="btn-mode-eraser" onclick="setDrawingMode('eraser')" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 flex items-center justify-center" title="手書き消しゴム"><i class="fa-solid fa-eraser text-xs"></i></button>
                     </div>
                     <div id="drawingOptions" class="hidden flex-col gap-2">
                         <div class="flex flex-col gap-1 items-center border-b border-slate-100 pb-2" id="colorPaletteContainer">
@@ -236,13 +254,13 @@
                         </div>
                         <div class="flex flex-col gap-0.5 items-center border-b border-slate-100 pb-2">
                             <span class="text-[7px] font-bold text-slate-400" id="width-tool-label">太さ</span>
-                            <button onclick="setPenWidth(3)" id="width-3" class="w-7 h-7 rounded-md text-slate-500 hover:bg-slate-50 font-bold text-[9px] flex items-center justify-center">細</button>
-                            <button onclick="setPenWidth(6)" id="width-6" class="w-7 h-7 rounded-md bg-slate-100 text-slate-700 font-bold text-[9px] flex items-center justify-center">中</button>
-                            <button onclick="setPenWidth(12)" id="width-12" class="w-7 h-7 rounded-md text-slate-500 hover:bg-slate-50 font-bold text-[9px] flex items-center justify-center">太</button>
+                            <button onclick="setPenWidth(3)" id="width-3" class="w-8 h-8 rounded-lg bg-slate-800 text-white font-bold text-[10px] flex items-center justify-center">細</button>
+                            <button onclick="setPenWidth(6)" id="width-6" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-50 font-bold text-[10px] flex items-center justify-center">中</button>
+                            <button onclick="setPenWidth(12)" id="width-12" class="w-8 h-8 rounded-lg text-slate-500 hover:bg-slate-50 font-bold text-[10px] flex items-center justify-center">太</button>
                         </div>
                         <div class="flex flex-col gap-0.5">
-                            <button onclick="undoLastStroke()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center"><i class="fa-solid fa-rotate-left text-xs"></i></button>
-                            <button onclick="clearDrawingsWithConfirm()" class="w-8 h-8 rounded-lg hover:bg-red-5 light:text-red-500 text-red-500 flex items-center justify-center"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                            <button onclick="undoLastStroke()" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-500 flex items-center justify-center" title="1つ戻す"><i class="fa-solid fa-rotate-left text-xs"></i></button>
+                            <button onclick="clearDrawingsWithConfirm()" class="w-8 h-8 rounded-lg hover:bg-red-5 light:text-red-500 text-red-500 flex items-center justify-center" title="すべて消去"><i class="fa-solid fa-trash-can text-xs"></i></button>
                         </div>
                     </div>
                 </div>
@@ -257,13 +275,20 @@
                             <button onclick="openNoteModal('add', 'interpretation')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-amber-50 text-amber-700"><i class="fa-solid fa-square-plus"></i>解釈付箋を追加</button>
                             <button onclick="openNoteModal('add', 'improvement')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-emerald-50 text-emerald-700"><i class="fa-solid fa-square-plus"></i>改善案付箋を追加</button>
                             <h4 class="text-[9px] font-bold text-slate-400 border-b pb-1 mt-1 mb-0.5">ボード操作</h4>
-                            <button onclick="alignStickyNotes()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-slate-100 text-slate-700"><i class="fa-solid fa-table-cells-large"></i>きれいに整列</button>
                             <button onclick="disableFullscreenAPI()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold hover:bg-red-50 text-red-600"><i class="fa-solid fa-compress"></i>全画面の終了</button>
                         </div>
                     </div>
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- 付箋コンテキストメニュー（長押し・右クリック用） -->
+    <div id="noteContextMenu" class="hidden fixed z-[999999] bg-white border border-slate-200 rounded-xl shadow-2xl flex-col text-xs font-bold text-slate-700 overflow-hidden min-w-[140px]">
+        <button id="ctxMenuEdit" class="flex items-center gap-2.5 px-4 py-3 hover:bg-slate-50 transition text-left"><i class="fa-solid fa-pen text-slate-400 w-4"></i>編集する</button>
+        <button id="ctxMenuUnlink" class="hidden items-center gap-2.5 px-4 py-3 hover:bg-slate-50 transition text-left"><i class="fa-solid fa-link-slash text-slate-400 w-4"></i>リンクを切る</button>
+        <div class="h-[1px] bg-slate-100 w-full"></div>
+        <button id="ctxMenuDelete" class="flex items-center gap-2.5 px-4 py-3 hover:bg-red-50 transition text-red-600 text-left"><i class="fa-solid fa-trash-can text-red-400 w-4"></i>削除する</button>
     </div>
 
     <!-- 統合版：付箋 追加/編集 モーダル -->
@@ -384,6 +409,24 @@
         const DISTANCE_3CM_PX = 114; 
         const DISTANCE_5CM_PX = 190; 
 
+        // ズーム・パン状態変数 (既存データとの互換性のために3000px * 2000px基準に設定)
+        let panX = 0;
+        let panY = 0;
+        let zoomScale = 1.0;
+        const MAX_SCALE = 3.0;
+
+        let isPanning = false;
+        let startPanX = 0, startPanY = 0;
+        let initialTouchDistance = 0;
+        let initialScale = 1.0;
+        let initialTouchCenter = { x: 0, y: 0 };
+
+        // 長押しメニュー用変数
+        let longPressTimer = null;
+        let pressStartX = 0;
+        let pressStartY = 0;
+        let contextMenuTargetId = null;
+
         const NOTE_THEMES = {
             fact: { bg: "bg-sky-50", border: "border-sky-100", noteBg: "bg-sky-100", noteBorder: "border-sky-300", text: "text-sky-950", tape: "from-sky-300 to-sky-200 border-sky-400", label: "事実", icon: '<i class="fa-solid fa-magnifying-glass"></i>', btn: "bg-sky-500 hover:bg-sky-600" },
             interpretation: { bg: "bg-amber-50", border: "border-amber-100", noteBg: "bg-amber-100", noteBorder: "border-amber-300", text: "text-amber-950", tape: "from-amber-300 to-amber-200 border-amber-400", label: "解釈", icon: '<i class="fa-solid fa-lightbulb"></i>', btn: "bg-amber-500 hover:bg-amber-600" },
@@ -404,9 +447,10 @@
         let isDraggedInterpDisconnected = false;
         let isDraggedImproveDisconnected = false;
 
-        let dCanvas = null, dCtx = null, isDrawing = false, opMode = 'select', penColor = '#1e293b', penWidth = 6;
+        let dCanvas = null, dCtx = null, isDrawing = false, opMode = 'select', penColor = '#1e293b', penWidth = 3;
         let currentStrokePoints = [], lastEraserCoords = null;
         let menuDelayTimer = null;
+        let canvasRectCache = null;
 
         let enteredFromAdmin = false; 
         let unsubscribeWorkspaces = null; 
@@ -852,11 +896,12 @@
             });
             
             const search = document.getElementById("filterSearch"); search.value = "";
-            search.className = "w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-xl text-xs focus:outline-none bg-slate-50 mr-1 py-2.5";
+            search.className = "w-0 opacity-0 pointer-events-none transition-all duration-300 ease-in-out border border-transparent rounded-lg text-xs focus:outline-none bg-slate-50 mr-1 py-2.5";
             
             setTimeout(() => {
                 initDrawingCanvas(); 
                 renderBoards();
+                resetZoomAndCenter(); // ビード描画後に中央かつフィットするようにリセット
             }, 60);
         }
 
@@ -884,6 +929,7 @@
             input.value = "";
         }
 
+        // --- Quick Board Create ---
         function handleQuickCreateBtnClick() {
             const input = document.getElementById("quickRoomName");
             createQuickRoom(input.value);
@@ -932,6 +978,7 @@
             document.getElementById("noteModal").classList.replace("hidden", "flex");
         }
 
+        // --- Note Modal Close ---
         function closeNoteModal() { document.getElementById("noteModal").classList.replace("flex", "hidden"); }
 
         async function handleNoteSubmit(e) {
@@ -948,9 +995,10 @@
             try {
                 if (mode === 'add') {
                     const newRecordId = "rec-" + Date.now();
+                    // 新規付箋が3000*2000のほぼ中央（45%〜55%付近）に生成されるように調整
                     await setDoc(doc(recordsCol, newRecordId), {
                         workspaceId: currentWorkspaceId,
-                        type, text, x: 20 + Math.random() * 25, y: 18 + Math.random() * 25, w: 113, h: 97,
+                        type, text, x: 45 + Math.random() * 10, y: 45 + Math.random() * 10, w: 113, h: 97,
                         connectedFactId: null, connectedInterpId: null, createdAt: new Date().toISOString()
                     });
                     showToast("追加しました");
@@ -987,8 +1035,9 @@
             }
         }
 
-        async function disconnectRecordDirectly(id, e) {
-            if (!user || !currentWorkspaceId) return; e.stopPropagation();
+        async function disconnectRecordDirectly(id, ev) {
+            if (!user || !currentWorkspaceId) return; 
+            if (ev) ev.stopPropagation();
             const r = allRecords.find(x => x.id === id); if (!r) return;
             try {
                 const updates = {};
@@ -1000,6 +1049,59 @@
             } catch (err) {
                 showToast("解除できませんでした", "error");
             }
+        }
+
+        // コンテキストメニュー（長押し・右クリック用）の表示・非表示
+        function showNoteContextMenu(e, record, x, y) {
+            hideNoteContextMenu();
+            if (!record) return;
+
+            const menu = document.getElementById("noteContextMenu");
+            contextMenuTargetId = record.id;
+
+            const unlinkBtn = document.getElementById("ctxMenuUnlink");
+            const hasConn = (record.type === "interpretation" && record.connectedFactId) || (record.type === "improvement" && record.connectedInterpId);
+            if (hasConn) {
+                unlinkBtn.classList.remove("hidden");
+                unlinkBtn.classList.add("flex");
+                unlinkBtn.onclick = (ev) => {
+                    hideNoteContextMenu();
+                    disconnectRecordDirectly(record.id, ev);
+                };
+            } else {
+                unlinkBtn.classList.remove("flex");
+                unlinkBtn.classList.add("hidden");
+            }
+
+            document.getElementById("ctxMenuEdit").onclick = () => {
+                hideNoteContextMenu();
+                openNoteModal('edit', record.type, record.id);
+            };
+
+            document.getElementById("ctxMenuDelete").onclick = () => {
+                hideNoteContextMenu();
+                deleteRecordWithConfirm(record.id);
+            };
+
+            menu.style.left = `${x}px`;
+            menu.style.top = `${y}px`;
+            menu.classList.replace("hidden", "flex");
+
+            // 画面外にはみ出ないように補正
+            requestAnimationFrame(() => {
+                const rect = menu.getBoundingClientRect();
+                if (rect.right > window.innerWidth) menu.style.left = `${window.innerWidth - rect.width - 10}px`;
+                if (rect.bottom > window.innerHeight) menu.style.top = `${window.innerHeight - rect.height - 10}px`;
+            });
+            
+            // 右クリック時にデフォルトメニューが出ないようにする
+            if (e && e.preventDefault) e.preventDefault();
+        }
+
+        function hideNoteContextMenu() {
+            const menu = document.getElementById("noteContextMenu");
+            if (menu) menu.classList.replace("flex", "hidden");
+            contextMenuTargetId = null;
         }
 
         // --- Render UI ---
@@ -1026,7 +1128,7 @@
         }
 
         function renderBoards() {
-            const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return;
+            const b = document.getElementById("boardViewport"); if (!b || !currentWorkspaceId) return;
             b.querySelectorAll('.sticky-note, .empty-message').forEach(n => n.remove());
             const filter = document.getElementById("filterSearch").value.trim().toLowerCase();
             
@@ -1043,23 +1145,35 @@
             
             recs.forEach((r, i) => {
                 if (r.x === undefined) { r.x = 10 + (i * 8) % 55; r.y = 12 + (i * 10) % 45; }
-                const t = NOTE_THEMES[r.type], hasConn = (r.type === "interpretation" && r.connectedFactId) || (r.type === "improvement" && r.connectedInterpId);
+                const t = NOTE_THEMES[r.type];
                 const card = document.createElement("div"); card.id = `note-${r.id}`;
-                card.className = `sticky-note absolute rounded-2xl border flex flex-col ${t.noteBg} ${t.noteBorder} ${t.text}`;
+                card.className = `sticky-note absolute rounded-2xl border flex flex-col ${t.noteBg} ${t.noteBorder} ${t.text} bg-gradient-to-br from-white/60 to-transparent`;
                 card.style.left = `${r.x}%`; card.style.top = `${r.y}%`; 
                 card.style.width = `${r.w || 113}px`; card.style.height = `${r.h || 97}px`; card.style.zIndex = "10";
-                card.onmousedown = (e) => startDrag(e, card.id); card.ontouchstart = (e) => startDrag(e, card.id);
+                
+                // 長押し対応のため、イベントバインディングを変更
+                card.onmousedown = (e) => startDrag(e, card.id, r);
+                card.ontouchstart = (e) => startDrag(e, card.id, r);
+                card.oncontextmenu = (e) => {
+                    e.preventDefault();
+                    const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                    const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                    showNoteContextMenu(e, r, cx, cy);
+                };
+
+                // ヘッダーをなくし、記入領域を広げる。右下にラベルを配置。
+                // 左上揃えにするために items-start justify-start と text-left を適用
                 card.innerHTML = `
-                    <div class="h-6 bg-gradient-to-r ${t.tape} border-b flex justify-between items-center pl-3 pr-2 cursor-grab active:cursor-grabbing shrink-0 rounded-t-2xl select-none">
-                        <span class="text-[9px] font-extrabold uppercase flex items-center gap-1 opacity-80">${t.icon} ${t.label}</span>
-                        <div class="flex gap-1.5 z-30" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
-                            ${hasConn ? `<button onclick="disconnectRecordDirectly('${r.id}', event)" class="hover:text-red-600 p-0.5 transition"><i class="fa-solid fa-link-slash text-[10px]"></i></button>` : ''}
-                            <button onclick="openNoteModal('edit', '${r.type}', '${r.id}')" class="hover:text-slate-950 p-0.5 transition"><i class="fa-solid fa-pen text-[10px]"></i></button>
-                            <button onclick="deleteRecordWithConfirm('${r.id}')" class="hover:text-red-700 p-0.5 transition"><i class="fa-solid fa-trash-can text-[10px]"></i></button>
+                    <div class="p-3 flex flex-col flex-grow overflow-hidden relative w-full h-full">
+                        <div class="flex-grow flex items-start justify-start w-full h-full pointer-events-none">
+                            <p class="font-adjust-target leading-tight handwritten font-medium text-left whitespace-pre-wrap w-full pointer-events-none m-0 pt-1"></p>
+                        </div>
+                        <div class="absolute bottom-1 right-2 opacity-40 flex items-center gap-1 text-[10px] font-bold select-none pointer-events-none bg-white/50 px-1 rounded">
+                            ${t.icon} <span class="tracking-widest">${t.label}</span>
                         </div>
                     </div>
-                    <div class="p-2 flex flex-col flex-grow overflow-hidden relative"><div class="flex-grow flex items-center justify-center p-0.5"><p class="font-adjust-target leading-relaxed handwritten font-medium text-center whitespace-pre-wrap w-full"></p></div></div>
                     <div class="resize-handle absolute bottom-0 right-0 w-6 h-6 cursor-se-resize flex items-end justify-end p-1 z-30 select-none" onmousedown="startResize(event, 'note-${r.id}')" ontouchstart="startResize(event, 'note-${r.id}')"><svg class="w-3.5 h-3.5 opacity-50 pointer-events-none" viewBox="0 0 10 10" stroke="currentColor" fill="none"><line x1="2" y1="8" x2="8" y2="2" stroke-width="1.8" stroke-linecap="round"/><line x1="5" y1="8" x2="8" y2="8" stroke-width="1.8" stroke-linecap="round"/></svg></div>`;
+                
                 b.appendChild(card); card.querySelector(".font-adjust-target").textContent = r.text; 
                 
                 // 初期のフォント調整ロジックを確実に当てるための二重・三重適用
@@ -1086,7 +1200,7 @@
 
             let min = 6, max = 21, opt = min;
             let r = document.createElement("div");
-            r.style.cssText = `position:absolute;visibility:hidden;width:${mw}px;white-space:pre-wrap;line-height:1.3;font-family:Yomogi, 'Noto Sans JP', sans-serif;word-break:break-all;`;
+            r.style.cssText = `position:absolute;visibility:hidden;width:${mw}px;white-space:pre-wrap;line-height:1.3;font-family:Yomogi, 'Noto Sans JP', sans-serif;word-break:break-all;text-align:left;`;
             r.textContent = tgt.textContent;
             document.body.appendChild(r);
             
@@ -1191,35 +1305,70 @@
 
         function setupGlobalDragListeners() {
             const move = (e) => {
+                const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+                const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+                
+                // 長押し中に少しでも移動した場合は長押しをキャンセル（ドラッグとみなす）
+                if (longPressTimer && (Math.abs(cx - pressStartX) > 5 || Math.abs(cy - pressStartY) > 5)) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+
                 if (resizingElement) {
-                    const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX, cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                    let nw = resizeStartWidth + (cx - resizeStartX), nh = resizeStartHeight + (cy - resizeStartY);
+                    // ズーム倍率を考慮した実寸の変化量を決定
+                    const deltaX = (cx - resizeStartX) / zoomScale;
+                    const deltaY = (cy - resizeStartY) / zoomScale;
+                    
+                    let nw = resizeStartWidth + deltaX;
+                    let nh = resizeStartHeight + deltaY;
+                    
                     if (nw < 55) nw = 55; if (nh < 45) nh = 45;
-                    const bR = document.getElementById("boardContainer").getBoundingClientRect(); if (nw > bR.width) nw = bR.width; if (nh > bR.height) nh = bR.height;
-                    resizingElement.style.width = `${nw}px`; resizingElement.style.height = `${nh}px`; adjustNoteFontSize(resizingElement); drawConnections(); e.preventDefault(); return;
+                    if (nw > 3000) nw = 3000; if (nh > 2000) nh = 2000;
+                    
+                    resizingElement.style.width = `${nw}px`; 
+                    resizingElement.style.height = `${nh}px`; 
+                    adjustNoteFontSize(resizingElement); 
+                    drawConnections(); 
+                    e.preventDefault(); 
+                    return;
                 }
                 if (draggedElement) {
-                    const bR = document.getElementById("boardContainer").getBoundingClientRect();
-                    const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-                    const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-                    let nl = cx - bR.left - dragOffsetX, nt = cy - bR.top - dragOffsetY;
-                    if (nl < 0) nl = 0; if (nt < 0) nt = 0;
-                    if (nl > bR.width - draggedElement.offsetWidth) nl = bR.width - draggedElement.offsetWidth; if (nt > bR.height - draggedElement.offsetHeight) nt = bR.height - draggedElement.offsetHeight;
-                    draggedElement.style.left = `${(nl / bR.width) * 100}%`; draggedElement.style.top = `${(nt / bR.height) * 100}%`;
+                    // ビューポート内でのタッチされたローカルの絶対座標
+                    const viewportRect = document.getElementById("boardViewport").getBoundingClientRect();
+                    const currentXInViewport = (cx - viewportRect.left) / zoomScale;
+                    const currentYInViewport = (cy - viewportRect.top) / zoomScale;
                     
-                    const r = allRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
+                    let nl = currentXInViewport - dragOffsetX;
+                    let nt = currentYInViewport - dragOffsetY;
+                    
+                    if (nl < 0) nl = 0; if (nt < 0) nt = 0;
+                    if (nl > 3000 - draggedElement.offsetWidth) nl = 3000 - draggedElement.offsetWidth; 
+                    if (nt > 2000 - draggedElement.offsetHeight) nt = 2000 - draggedElement.offsetHeight;
+                    
+                    // 実寸ピクセルから％比率(3000x2000に対する値)に変換
+                    draggedElement.style.left = `${(nl / 3000) * 100}%`; 
+                    draggedElement.style.top = `${(nt / 2000) * 100}%`;
+                    
+                    const rId = draggedElement.id.replace('note-', '');
+                    const r = allRecords.find(x => x.id === rId);
                     if (r) checkStickySnapping(r);
-                    drawConnections(); e.preventDefault();
+                    drawConnections(); 
+                    e.preventDefault();
                 }
             };
             const end = async () => {
+                // 長押し判定タイマーの解除
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+
                 if (resizingElement) {
                     const rId = resizingElement.id.replace('note-', '');
                     await updateDoc(doc(recordsCol, rId), { w: resizingElement.offsetWidth, h: resizingElement.offsetHeight });
                     resizingElement.style.zIndex = "10"; resizingElement = null;
                 }
                 if (draggedElement) {
-                    const rId = draggedElement.id.replace('note-', ''), r = allRecords.find(x => x.id === rId);
+                    const rId = draggedElement.id.replace('note-', '');
+                    const r = allRecords.find(x => x.id === rId);
                     if (r) {
                         try {
                             const updates = { x: parseFloat(draggedElement.style.left), y: parseFloat(draggedElement.style.top) };
@@ -1265,10 +1414,9 @@
             window.addEventListener('resize', adjustNotesOnResize);
         }
 
-        // --- Connection Drawing ---
+        // --- Connection Drawing (viewport実寸対応) ---
         function drawConnections() {
             const svg = document.getElementById("connectorSvg"); if (!svg) return; svg.innerHTML = "";
-            const bR = document.getElementById("boardContainer").getBoundingClientRect();
             const workspaceRecords = allRecords.filter(r => r.workspaceId === currentWorkspaceId);
             
             workspaceRecords.forEach(r => {
@@ -1276,61 +1424,46 @@
                     const f = workspaceRecords.find(x => x.id === r.connectedFactId);
                     if (f) {
                         const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedInterpDisconnected);
-                        drawSingleLine(svg, r, f, bR, isDisconnected ? "#ef4444" : "#f59e0b", isDisconnected);
+                        drawSingleLine(svg, r, f, isDisconnected ? "#ef4444" : "#f59e0b", isDisconnected);
                     }
                 }
                 if (r.type === "improvement" && r.connectedInterpId) {
                     const i = workspaceRecords.find(x => x.id === r.connectedInterpId);
                     if (i) {
                         const isDisconnected = (draggedElement && draggedElement.id === `note-${r.id}` && isDraggedImproveDisconnected);
-                        drawSingleLine(svg, r, i, bR, isDisconnected ? "#ef4444" : "#10b981", isDisconnected);
+                        drawSingleLine(svg, r, i, isDisconnected ? "#ef4444" : "#10b981", isDisconnected);
                     }
                 }
             });
             if (draggedElement) {
                 const r = workspaceRecords.find(x => x.id === draggedElement.id.replace('note-', ''));
                 if (r) {
-                    if (tempConnectionFactId) { const t = workspaceRecords.find(x => x.id === tempConnectionFactId); if (t) drawSingleLine(svg, r, t, bR, "#f59e0b", true); }
-                    if (tempConnectionImproveId) { const t = workspaceRecords.find(x => x.id === tempConnectionImproveId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
-                    if (tempConnectionInterpId && r.type === "improvement") { const t = workspaceRecords.find(x => x.id === tempConnectionInterpId); if (t) drawSingleLine(svg, r, t, bR, "#10b981", true); }
+                    if (tempConnectionFactId) { const t = workspaceRecords.find(x => x.id === tempConnectionFactId); if (t) drawSingleLine(svg, r, t, "#f59e0b", true); }
+                    if (tempConnectionImproveId) { const t = workspaceRecords.find(x => x.id === tempConnectionImproveId); if (t) drawSingleLine(svg, r, t, "#10b981", true); }
+                    if (tempConnectionInterpId && r.type === "improvement") { const t = workspaceRecords.find(x => x.id === tempConnectionInterpId); if (t) drawSingleLine(svg, r, t, "#10b981", true); }
                 }
             }
         }
 
-        function drawSingleLine(s, rA, rB, bR, c, isPre) {
+        function drawSingleLine(s, rA, rB, c, isPre) {
             const A = document.getElementById(`note-${rA.id}`), B = document.getElementById(`note-${rB.id}`); if (!A || !B) return;
-            const a = A.getBoundingClientRect(), b = B.getBoundingClientRect(), x1 = a.left - bR.left + a.width / 2, y1 = a.top - bR.top + a.height / 2, x2 = b.left - bR.left + b.width / 2, y2 = b.top - bR.top + b.height / 2;
+            // ズーム・パン状態に依存しない、viewport実寸での座標位置を直接使用する
+            const x1 = A.offsetLeft + A.offsetWidth / 2;
+            const y1 = A.offsetTop + A.offsetHeight / 2;
+            const x2 = B.offsetLeft + B.offsetWidth / 2;
+            const y2 = B.offsetTop + B.offsetHeight / 2;
+
             const l = document.createElementNS("http://www.w3.org/2000/svg", "line"); l.setAttribute("x1", x1); l.setAttribute("y1", y1); l.setAttribute("x2", x2); l.setAttribute("y2", y2); l.setAttribute("stroke", c); l.setAttribute("stroke-width", isPre ? "3" : "5"); l.setAttribute("stroke-linecap", "round"); if (isPre) l.setAttribute("stroke-dasharray", "8,6"); l.setAttribute("opacity", isPre ? "0.75" : "0.85"); s.appendChild(l);
             const ci = document.createElementNS("http://www.w3.org/2000/svg", "circle"); ci.setAttribute("cx", (x1 + x2) / 2); ci.setAttribute("cy", (y1 + y2) / 2); ci.setAttribute("r", isPre ? "5" : "7"); ci.setAttribute("fill", c); ci.setAttribute("stroke", "#fff"); ci.setAttribute("stroke-width", "2"); s.appendChild(ci);
         }
 
         function adjustNotesOnResize() {
-            const b = document.getElementById("boardContainer"); if (!b || !currentWorkspaceId) return; const bR = b.getBoundingClientRect();
-            allRecords.forEach(r => {
-                if (r.workspaceId !== currentWorkspaceId) return;
-                const n = document.getElementById(`note-${r.id}`); if (!n) return;
-                let l = (r.x / 100) * bR.width, t = (r.y / 100) * bR.height;
-                if (l + n.offsetWidth > bR.width) l = bR.width - n.offsetWidth; if (l < 0) l = 0; if (t + n.offsetHeight > bR.height) t = bR.height - n.offsetHeight; if (t < 0) t = 0;
-                r.x = (l / bR.width) * 100; r.y = (t / bR.height) * 100; n.style.left = `${r.x}%`; n.style.top = `${r.y}%`; 
-                adjustNoteFontSize(n);
-            }); redrawDrawings(); saveAllData();
-        }
-
-        // --- 付箋自動整列処理の実装 ---
-        async function alignStickyNotes() {
-            if (!user || !currentWorkspaceId) return;
-            const b = document.getElementById("boardContainer"), notes = Array.from(b.querySelectorAll('.sticky-note')); if (!notes.length) return;
-            let cols = b.offsetWidth < 640 ? 1 : b.offsetWidth < 1024 ? 2 : 4;
-            const wP = (100 - (4 * (cols + 1))) / cols, hP = 14;
-            try {
-                const batch = writeBatch(db);
-                notes.forEach((n, i) => {
-                    const x = 4 + (i % cols) * (wP + 4), y = 5 + Math.floor(i / cols) * (hP + 5);
-                    batch.update(doc(recordsCol, n.id.replace('note-', '')), { x, y });
-                });
-                await batch.commit();
-                showToast("付箋を整列しました");
-            } catch (err) { showToast("整列同期エラー", "error"); }
+            // ビューポートサイズ固定に伴い、アライメントの％値に変更は起きないため再描画のみ実行
+            redrawDrawings();
+            drawConnections();
+            
+            // ウィンドウサイズが変更された場合、隙間（グレー部分）が発生しないように座標を再クランプ
+            clampAndTransform();
         }
 
         // --- Custom Dialog Component ---
@@ -1387,7 +1520,7 @@
             document.getElementById("fullscreenMenu").classList.remove("hidden");
             document.documentElement.style.overflow = 'hidden'; document.documentElement.style.overscrollBehavior = 'none';
             document.body.style.overflow = 'hidden'; document.body.style.overscrollBehavior = 'none';
-            setTimeout(() => { adjustNotesOnResize(); redrawDrawings(); }, 100);
+            setTimeout(() => { adjustNotesOnResize(); resetZoomAndCenter(); }, 100);
         }
         function disablePseudoFullscreen() {
             const b = document.getElementById("boardContainer"); b.classList.remove("pseudo-fullscreen-active");
@@ -1395,17 +1528,32 @@
             document.getElementById("fullscreenMenu").classList.add("hidden");
             document.documentElement.style.overflow = ''; document.documentElement.style.overscrollBehavior = '';
             document.body.style.overflow = ''; document.body.style.overscrollBehavior = '';
-            setTimeout(() => { adjustNotesOnResize(); redrawDrawings(); }, 100);
+            setTimeout(() => { adjustNotesOnResize(); resetZoomAndCenter(); }, 100);
         }
         function disableFullscreenAPI() { disablePseudoFullscreen(); }
 
         // --- Export & Backup ---
         function exportBoardPDF() {
             const b = document.getElementById("boardContainer"), n = b.querySelectorAll('.sticky-note');
+            const vp = document.getElementById("boardViewport");
+            const oldTransform = vp.style.transform;
+            
+            // PDF出力用に一時的にズーム・パン位置を解除し実寸3000x2000全体を等倍（スケール1）でロード
+            vp.style.transform = "translate(0px, 0px) scale(1)";
+            
             b.querySelectorAll('.resize-handle, .flex.items-center.z-30').forEach(e => e.style.display = 'none'); n.forEach(x => { x.style.boxShadow = 'none'; x.style.border = '1px solid #94a3b8'; });
             showToast("PDFを準備しています...", "info");
-            html2pdf().set({ margin: 6, filename: `見取り_${document.getElementById("currentWorkspaceTitle").innerText || "ボード"}_${new Date().toISOString().split('T')[0]}.pdf`, html2canvas: { scale: 2, useCORS: true }, jsPDF: { orientation: 'landscape' } }).from(b).save().then(() => {
-                b.querySelectorAll('.resize-handle, .flex.items-center.z-30').forEach(e => e.style.display = 'flex'); n.forEach(x => { x.style.boxShadow = ''; x.style.border = ''; }); showToast("保存完了");
+            
+            // 広大な3000x2000キャンバスが等倍でA4/A3などの景観PDFにそのまま高画質で埋め込まれるよう設定
+            html2pdf().set({ 
+                margin: 0, 
+                filename: `見取り_${document.getElementById("currentWorkspaceTitle").innerText || "ボード"}_${new Date().toISOString().split('T')[0]}.pdf`, 
+                html2canvas: { scale: 1.2, useCORS: true }, 
+                jsPDF: { orientation: 'landscape', unit: 'px', format: [3000, 2000] } 
+            }).from(vp).save().then(() => {
+                b.querySelectorAll('.resize-handle, .flex.items-center.z-30').forEach(e => e.style.display = 'flex'); n.forEach(x => { x.style.boxShadow = ''; x.style.border = ''; });
+                vp.style.transform = oldTransform;
+                showToast("保存完了");
             });
         }
         function exportCSV() {
@@ -1442,7 +1590,7 @@
             }; reader.readAsText(f);
         }
 
-        // --- Drawing Canvas Logic ---
+        // --- Drawing Canvas Logic (Viewport実寸対応) ---
         function initDrawingCanvas() {
             dCanvas = document.getElementById("drawingCanvas"); if (!dCanvas) return; dCtx = dCanvas.getContext("2d");
             dCanvas.onmousedown = onDrawStart; dCanvas.onmousemove = onDrawMove; window.addEventListener("mouseup", onDrawEnd);
@@ -1455,23 +1603,97 @@
             const o = document.getElementById("drawingOptions"); if (m === 'select') o.classList.replace("flex", "hidden"); else o.classList.replace("hidden", "flex");
             document.getElementById("colorPaletteContainer").className = m === 'pen' ? "flex flex-col gap-1.5 items-center border-b pb-2.5" : "hidden";
             document.getElementById("width-tool-label").innerText = m === 'pen' ? "太さ" : "消し幅";
+            
+            // ペンや消しゴムが有効なときはボード全体のピンチ／ドラッグでの移動やズームを受け付ける。
+            // 背景クリック等での1本指パンはselectモード時のみ許容する。
             if (m === 'select') { el.classList.remove("prevent-pan"); el.style.pointerEvents = "none"; document.querySelectorAll('.sticky-note').forEach(n => n.style.cursor = "grab"); }
             else { el.classList.add("prevent-pan"); el.style.pointerEvents = "auto"; document.querySelectorAll('.sticky-note').forEach(n => n.style.cursor = "default"); } redrawDrawings();
         }
         function setPenColor(c) { penColor = c; ['#1e293b', '#ef4444', '#0ea5e9', '#10b981'].forEach(x => document.getElementById(`color-${x}`).className = `w-6 h-6 rounded-full border-2 ${x === c ? 'border-indigo-600 scale-110' : 'border-transparent hover:scale-105'} ${x === '#1e293b' ? 'bg-slate-800' : x === '#ef4444' ? 'bg-red-500' : x === '#0ea5e9' ? 'bg-sky-500' : 'bg-emerald-500'}`); }
-        function setPenWidth(w) { penWidth = w; [3, 6, 12].forEach(x => document.getElementById(`width-${x}`).className = `w-8 h-8 rounded-lg font-bold text-[10px] ${x === w ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50'}`); }
+        function setPenWidth(w) { penWidth = w; [3, 6, 12].forEach(x => document.getElementById(`width-${x}`).className = `w-8 h-8 rounded-lg font-bold text-[10px] flex items-center justify-center ${x === w ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50'}`); }
         
+        function updateEraserCursor(cx, cy) {
+            const cursor = document.getElementById('eraserCursor');
+            if (opMode === 'eraser' && isDrawing) {
+                // ズームスケールに合わせてカーソルの見た目の大きさを調整
+                const size = (penWidth + 30) * zoomScale;
+                cursor.style.width = `${size}px`;
+                cursor.style.height = `${size}px`;
+                cursor.style.left = `${cx}px`;
+                cursor.style.top = `${cy}px`;
+                cursor.classList.remove('hidden');
+            } else {
+                cursor.classList.add('hidden');
+            }
+        }
+
         function getCanvasCoords(e) { 
-            const r = dCanvas.getBoundingClientRect();
+            const r = canvasRectCache || dCanvas.getBoundingClientRect();
             const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY; 
-            return { pxX: cx - r.left, pxY: cy - r.top, pctX: ((cx - r.left) / r.width) * 100, pctY: ((cy - r.top) / r.height) * 100 }; 
+            
+            // 画面の絶対ピクセル座標からズーム・パン率を考慮して、ビューポート（キャンバス実寸3000x2000）内の座標へ逆算
+            const localX = (cx - r.left) / zoomScale;
+            const localY = (cy - r.top) / zoomScale;
+            
+            return { pxX: localX, pxY: localY, pctX: (localX / 3000) * 100, pctY: (localY / 2000) * 100 }; 
         }
-        function onDrawStart(e) { if (opMode === 'select') return; isDrawing = true; const c = getCanvasCoords(e); if (!c) return; if (opMode === 'eraser') { lastEraserCoords = c; eraseStrokeAt(c); } else currentStrokePoints = [{ x: c.pctX, y: c.pctY }]; if (e.type.includes('touch')) e.preventDefault(); }
-        function onDrawMove(e) { if (!isDrawing || opMode === 'select') return; const c = getCanvasCoords(e); if (!c) return; if (opMode === 'eraser') { lastEraserCoords = c; eraseStrokeAt(c); } else { const lp = currentStrokePoints[currentStrokePoints.length - 1]; currentStrokePoints.push({ x: c.pctX, y: c.pctY }); const r = dCanvas.getBoundingClientRect(); dCtx.beginPath(); dCtx.strokeStyle = penColor; dCtx.lineWidth = penWidth; dCtx.lineCap = 'round'; dCtx.lineJoin = 'round'; dCtx.moveTo((lp.x / 100) * r.width, (lp.y / 100) * r.height); dCtx.lineTo((c.pctX / 100) * r.width, (c.pctY / 100) * r.height); dCtx.stroke(); } if (e.type.includes('touch')) e.preventDefault(); }
+        function onDrawStart(e) { 
+            if (opMode === 'select') return; 
+            isDrawing = true; 
+            canvasRectCache = dCanvas.getBoundingClientRect();
+
+            const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            if (opMode === 'eraser') {
+                updateEraserCursor(cx, cy);
+            } else {
+                dCtx.strokeStyle = penColor; 
+                dCtx.lineWidth = penWidth; 
+                dCtx.lineCap = 'round'; 
+                dCtx.lineJoin = 'round'; 
+            }
+
+            const c = getCanvasCoords(e); 
+            if (!c) return; 
+            if (opMode === 'eraser') { 
+                lastEraserCoords = c; eraseStrokeAt(c); 
+            } else { 
+                currentStrokePoints = [{ x: c.pctX, y: c.pctY }]; 
+            } 
+            if (e.type.includes('touch') && e.cancelable) e.preventDefault(); 
+        }
+        function onDrawMove(e) { 
+            if (!isDrawing || opMode === 'select') return; 
+
+            const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            if (opMode === 'eraser') {
+                updateEraserCursor(cx, cy);
+            }
+
+            const c = getCanvasCoords(e); 
+            if (!c) return; 
+            
+            if (opMode === 'eraser') { 
+                lastEraserCoords = c; eraseStrokeAt(c); 
+            } else { 
+                const lp = currentStrokePoints[currentStrokePoints.length - 1]; 
+                currentStrokePoints.push({ x: c.pctX, y: c.pctY }); 
+                dCtx.beginPath(); 
+                dCtx.moveTo((lp.x / 100) * 3000, (lp.y / 100) * 2000); 
+                dCtx.lineTo((c.pctX / 100) * 3000, (c.pctY / 100) * 2000); 
+                dCtx.stroke(); 
+            } 
+            if (e.type && e.type.includes('touch') && e.cancelable) e.preventDefault(); 
+        }
         
-        async function onDrawEnd() {
+        async function onDrawEnd(e) {
             if (!isDrawing) return; isDrawing = false;
+            canvasRectCache = null;
+            document.getElementById('eraserCursor').classList.add('hidden');
             if (opMode !== 'eraser' && currentStrokePoints.length) {
                 const newDrawingId = "draw-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
                 const newDrawing = { 
@@ -1501,9 +1723,10 @@
         async function eraseStrokeAt(c) {
             if (!currentWorkspaceId) return;
             const combinedDrawings = [...allDrawings, ...localDrawings].filter(d => d.workspaceId === currentWorkspaceId);
-            if (!combinedDrawings.length) { redrawDrawings(); return; }
+            if (!combinedDrawings.length) return;
 
-            const r = dCanvas.getBoundingClientRect(), hitRadPct = ((penWidth / 2 + 15) / ((r.width + r.height) / 2)) * 100, tSq = hitRadPct * hitRadPct;
+            // ズーム比率に影響されない実寸比率で当たり判定を定義
+            const hitRadPct = ((penWidth / 2 + 15) / 2500) * 100, tSq = hitRadPct * hitRadPct;
             let hitId = null;
             
             for (let i = combinedDrawings.length - 1; i >= 0; i--) {
@@ -1533,12 +1756,14 @@
                     } 
                 }
             }
-            redrawDrawings();
         }
 
         function redrawDrawings() {
-            if (!dCanvas || !dCtx) return; const r = dCanvas.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; if (r.width === 0) return;
-            dCanvas.width = r.width * dpr; dCanvas.height = r.height * dpr; dCtx.scale(dpr, dpr); dCtx.clearRect(0, 0, r.width, r.height);
+            if (!dCanvas || !dCtx) return;
+            // 仮想ボード実寸 (3000px * 2000px) に固定
+            dCanvas.width = 3000;
+            dCanvas.height = 2000;
+            dCtx.clearRect(0, 0, 3000, 2000);
             
             const workspaceDrawings = allDrawings.filter(d => d.workspaceId === currentWorkspaceId);
             const combinedDrawings = [...workspaceDrawings];
@@ -1551,12 +1776,11 @@
             if (combinedDrawings.length) {
                 combinedDrawings.forEach(s => {
                     if (!s.points || !s.points.length) return; dCtx.beginPath(); dCtx.strokeStyle = s.color || '#1e293b'; dCtx.lineWidth = s.width || 6; dCtx.lineCap = 'round'; dCtx.lineJoin = 'round';
-                    dCtx.moveTo((s.points[0].x / 100) * r.width, (s.points[0].y / 100) * r.height);
-                    for (let i = 1; i < s.points.length; i++) dCtx.lineTo((s.points[i].x / 100) * r.width, (s.points[i].y / 100) * r.height);
+                    dCtx.moveTo((s.points[0].x / 100) * 3000, (s.points[0].y / 100) * 2000);
+                    for (let i = 1; i < s.points.length; i++) dCtx.lineTo((s.points[i].x / 100) * 3000, (s.points[i].y / 100) * 2000);
                     dCtx.stroke();
                 });
             }
-            if (isDrawing && opMode === 'eraser' && lastEraserCoords) { dCtx.beginPath(); dCtx.fillStyle = 'rgba(239,68,68,0.15)'; dCtx.strokeStyle = 'rgba(239,68,68,0.4)'; dCtx.lineWidth = 1.5; dCtx.arc((lastEraserCoords.pctX / 100) * r.width, (lastEraserCoords.pctY / 100) * r.height, penWidth/2+15, 0, Math.PI * 2); dCtx.fill(); dCtx.stroke(); }
         }
 
         async function undoLastStroke() {
@@ -1635,16 +1859,36 @@
             t.ontouchstart = (e) => e.stopPropagation();
         }
 
-        // --- Global Drag Logic Helper ---
-        function startDrag(e, id) {
+        // --- Global Drag Logic Helper (ズーム倍率を考慮した座標軸マッピングと長押し対応) ---
+        function startDrag(e, id, record) {
             if (opMode !== 'select') return;
             const el = document.getElementById(id); if (!el) return;
             draggedElement = el;
-            const bR = document.getElementById("boardContainer").getBoundingClientRect();
+            
+            if (!record) {
+                const rId = id.replace('note-', '');
+                record = allRecords.find(x => x.id === rId);
+            }
+            
             const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            dragOffsetX = cx - el.getBoundingClientRect().left;
-            dragOffsetY = cy - el.getBoundingClientRect().top;
+            
+            pressStartX = cx;
+            pressStartY = cy;
+
+            // ビューポート内での付箋の現在の位置（ピクセル）
+            const currentLeft = el.offsetLeft;
+            const currentTop = el.offsetTop;
+            
+            // ビューポート基準ピクセル（画面全体の絶対座標からズームを考慮して逆算）
+            const viewportRect = document.getElementById("boardViewport").getBoundingClientRect();
+            const clickXInViewport = (cx - viewportRect.left) / zoomScale;
+            const clickYInViewport = (cy - viewportRect.top) / zoomScale;
+            
+            // つかんだ箇所と付箋の左上端のオフセット（実寸ピクセル）
+            dragOffsetX = clickXInViewport - currentLeft;
+            dragOffsetY = clickYInViewport - currentTop;
+            
             el.style.zIndex = "100";
 
             isDraggedInterpDisconnected = false;
@@ -1652,6 +1896,17 @@
             tempConnectionFactId = null;
             tempConnectionInterpId = null;
             tempConnectionImproveId = null;
+
+            // 長押しタイマーのセット (500ms)
+            clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(() => {
+                if (draggedElement === el && record) {
+                    // 長押し判定: ドラッグをキャンセルし、コンテキストメニューを表示
+                    draggedElement.style.zIndex = "10";
+                    draggedElement = null; 
+                    showNoteContextMenu(e, record, pressStartX, pressStartY);
+                }
+            }, 500);
 
             e.stopPropagation();
         }
@@ -1687,6 +1942,254 @@
             e.preventDefault();
         }
 
+        // --- ズーム ＆ パン（平行移動）のイベント処理設計 ---
+        
+        // 画面全体を完全にボード（白いキャンバス）で覆い尽くすために必要な最小ズーム比率を動的に計算する
+        function getMinScale() {
+            const container = document.getElementById("boardContainer");
+            if (!container) return 0.15;
+            const bR = container.getBoundingClientRect();
+            // コンテナがまだ正しく描画されていない場合は安全値を返す
+            if (bR.width === 0 || bR.height === 0) return 0.15;
+            // 幅と高さがはみ出さない（＝グレーの余白が絶対に露出しない）最大側の倍率を採用
+            return Math.max(bR.width / 3000, bR.height / 2000);
+        }
+
+        // ズームスケール制限とパン座標限界（グレーの余白を完全に見せないため）のクランプをかけて適用
+        function clampAndTransform() {
+            const container = document.getElementById("boardContainer");
+            if (!container) return;
+            const bR = container.getBoundingClientRect();
+            if (bR.width === 0 || bR.height === 0) return;
+
+            // 1. スケール制限（グレー背景が一切はみ出ないための動的クランプ）
+            const minScale = getMinScale();
+            if (zoomScale < minScale) zoomScale = minScale;
+            if (zoomScale > MAX_SCALE) zoomScale = MAX_SCALE;
+
+            // 2. 移動座標（パン値）制限
+            // ボードの四隅が画面のコンテナ枠からはみ出してグレー背景が見えないように、panXとpanYの上限・下限を制限
+            const maxPanX = 0;
+            const minPanX = bR.width - (3000 * zoomScale);
+            const maxPanY = 0;
+            const minPanY = bR.height - (2000 * zoomScale);
+
+            if (panX > maxPanX) panX = maxPanX;
+            if (panX < minPanX) panX = minPanX;
+            if (panY > maxPanY) panY = maxPanY;
+            if (panY < minPanY) panY = minPanY;
+
+            // スタイル適用
+            const vp = document.getElementById("boardViewport");
+            if (vp) {
+                vp.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomScale})`;
+            }
+            const indicator = document.getElementById("zoomIndicator");
+            if (indicator) {
+                indicator.innerText = `${Math.round(zoomScale * 100)}%`;
+            }
+        }
+
+        // 指定の座標（主にマウスやピンチの中心）を中心としてズームを行うロジック
+        function applyZoomAt(mouseX, mouseY, scaleFactor) {
+            const container = document.getElementById("boardContainer");
+            if (!container) return;
+            const bR = container.getBoundingClientRect();
+            
+            // コンテナ基準のマウス相対座標
+            const localX = mouseX - bR.left;
+            const localY = mouseY - bR.top;
+
+            // ズーム適用前のビューポート内におけるマウスの座標
+            const viewportX = (localX - panX) / zoomScale;
+            const viewportY = (localY - panY) / zoomScale;
+
+            // スケール掛け合わせ
+            zoomScale *= scaleFactor;
+
+            // ズームの中心点が同じ画面位置に残るようにパン値を補正
+            panX = localX - viewportX * zoomScale;
+            panY = localY - viewportY * zoomScale;
+
+            clampAndTransform();
+        }
+
+        // ボード起動時の初期状態（デフォルト100%）およびリセット時（フィット）の位置調整
+        function resetZoomAndCenter() {
+            const container = document.getElementById("boardContainer");
+            if (!container) return;
+            const bR = container.getBoundingClientRect();
+            if (bR.width === 0 || bR.height === 0) return;
+
+            // 起動時の初期ズーム倍率は100%（1.0）
+            zoomScale = 1.0;
+            
+            // コンテナ幅よりも100%倍率のズーム最小限度の方が大きい（ウィンドウが小さい）場合はフィットスケールにクランプ
+            const minScale = getMinScale();
+            if (zoomScale < minScale) {
+                zoomScale = minScale;
+            }
+
+            // ぴったり画面のセンターにボード実寸の中心（3000x2000の真ん中）が来るように配置
+            panX = (bR.width - 3000 * zoomScale) / 2;
+            panY = (bR.height - 2000 * zoomScale) / 2;
+
+            clampAndTransform();
+        }
+
+        // ズーム＆パンのタッチ／マウスイベントリスナー
+        function setupZoomPanEvents() {
+            const container = document.getElementById("boardContainer");
+            if (!container) return;
+
+            // メニュー外クリック時にコンテキストメニューを閉じる処理
+            window.addEventListener('mousedown', (e) => {
+                if (e.target && e.target.closest && !e.target.closest('#noteContextMenu')) {
+                    hideNoteContextMenu();
+                }
+            });
+            window.addEventListener('touchstart', (e) => {
+                if (e.target && e.target.closest && !e.target.closest('#noteContextMenu')) {
+                    hideNoteContextMenu();
+                }
+            });
+            window.addEventListener('wheel', hideNoteContextMenu, { passive: true });
+
+
+            // PC：マウスによるドラッグ移動（パン）
+            container.addEventListener('mousedown', (e) => {
+                const isToolbar = e.target.closest('#drawingToolbar') || e.target.closest('#fullscreenMenu') || e.target.closest('#zoomIndicator') || e.target.closest('button');
+                const isNote = e.target.closest('.sticky-note') || e.target.closest('#noteModal') || e.target.closest('#dialogModal') || e.target.closest('#backupModal') || e.target.closest('#noteContextMenu');
+                
+                if (isToolbar || isNote) return;
+
+                // 左ドラッグによる移動（selectモード時）または右・中央ボタンドラッグ（いつでも移動）
+                const isBackgroundLeftClick = (e.button === 0 && opMode === 'select');
+                const isRightOrMiddleClick = (e.button === 1 || e.button === 2);
+
+                if (isBackgroundLeftClick || isRightOrMiddleClick) {
+                    isPanning = true;
+                    startPanX = e.clientX - panX;
+                    startPanY = e.clientY - panY;
+                    container.style.cursor = 'grabbing';
+                    e.preventDefault();
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (isPanning) {
+                    panX = e.clientX - startPanX;
+                    panY = e.clientY - startPanY;
+                    clampAndTransform();
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isPanning) {
+                    isPanning = false;
+                    container.style.cursor = '';
+                }
+            });
+
+            // 右ドラッグで移動しやすいように背景上のコンテキストメニューを防止
+            container.addEventListener('contextmenu', (e) => {
+                const isInput = e.target.closest('input') || e.target.closest('textarea') || e.target.closest('.sticky-note');
+                if (!isInput) {
+                    e.preventDefault();
+                }
+            });
+
+            // PC：ホイールでのズーム＆２次元移動
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (e.ctrlKey) {
+                    // Ctrl + ホイール ＝ ズーム
+                    const factor = e.deltaY < 0 ? 1.08 : 0.92;
+                    applyZoomAt(e.clientX, e.clientY, factor);
+                } else {
+                    // 通常のスクロール（またはトラックパッド2本指操作）＝ 2Dスクロール移動
+                    panX -= e.deltaX;
+                    panY -= e.deltaY;
+                    clampAndTransform();
+                }
+            }, { passive: false });
+
+            // iPad：タッチ操作（ピンチズーム・ピンチパン・1本指背景スクロール）
+            container.addEventListener('touchstart', (e) => {
+                const isToolbar = e.target.closest('#drawingToolbar') || e.target.closest('#fullscreenMenu') || e.target.closest('button');
+                const isNote = e.target.closest('.sticky-note') || e.target.closest('#noteModal') || e.target.closest('#dialogModal') || e.target.closest('#backupModal') || e.target.closest('#noteContextMenu');
+                
+                if (isToolbar || isNote) return;
+
+                if (e.touches.length === 1 && opMode === 'select') {
+                    // 1本指での背景パン開始
+                    isPanning = true;
+                    startPanX = e.touches[0].clientX - panX;
+                    startPanY = e.touches[0].clientY - panY;
+                } else if (e.touches.length === 2) {
+                    // 2本指でのマルチタッチズーム＆スクロール開始
+                    isPanning = false; // 1本指移動を解除
+                    const t1 = e.touches[0];
+                    const t2 = e.touches[1];
+                    initialTouchDistance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+                    initialScale = zoomScale;
+                    initialTouchCenter = {
+                        x: (t1.clientX + t2.clientX) / 2,
+                        y: (t1.clientY + t2.clientY) / 2
+                    };
+                    startPanX = initialTouchCenter.x - panX;
+                    startPanY = initialTouchCenter.y - panY;
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1 && isPanning) {
+                    // 1本指でのスワイプ移動
+                    panX = e.touches[0].clientX - startPanX;
+                    panY = e.touches[0].clientY - startPanY;
+                    clampAndTransform();
+                    e.preventDefault();
+                } else if (e.touches.length === 2) {
+                    // 2本指でのピンチ＆ズーム
+                    const t1 = e.touches[0];
+                    const t2 = e.touches[1];
+                    const currentDistance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+                    const currentCenter = {
+                        x: (t1.clientX + t2.clientX) / 2,
+                        y: (t1.clientY + t2.clientY) / 2
+                    };
+
+                    const factor = currentDistance / (initialTouchDistance || 1);
+                    let newScale = initialScale * factor;
+                    
+                    const minScale = getMinScale();
+                    if (newScale < minScale) newScale = minScale;
+                    if (newScale > MAX_SCALE) newScale = MAX_SCALE;
+
+                    const localX = currentCenter.x;
+                    const localY = currentCenter.y;
+                    const viewportX = (localX - panX) / zoomScale;
+                    const viewportY = (localY - panY) / zoomScale;
+
+                    zoomScale = newScale;
+                    panX = currentCenter.x - viewportX * zoomScale;
+                    panY = currentCenter.y - viewportY * zoomScale;
+
+                    clampAndTransform();
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            container.addEventListener('touchend', (e) => {
+                if (e.touches.length < 2) {
+                    initialTouchDistance = 0;
+                }
+                if (e.touches.length === 0) {
+                    isPanning = false;
+                }
+            });
+        }
+
         // --- Global Bindings for HTML ---
         window.createNewWorkspace = createNewWorkspace;
         window.renameWorkspace = renameWorkspace;
@@ -1703,7 +2206,6 @@
         window.disableFullscreenAPI = disableFullscreenAPI;
         window.toggleSearchInput = toggleSearchInput;
         window.applyFilters = applyFilters;
-        window.alignStickyNotes = alignStickyNotes;
         window.exportBoardPDF = exportBoardPDF;
         window.exportCSV = exportCSV;
         window.openBackupModal = openBackupModal;
@@ -1725,11 +2227,13 @@
         window.copyRoomIdToClipboard = copyRoomIdToClipboard;
         window.joinRoomById = joinRoomById;
         window.deleteWorkspaceFromHistory = deleteWorkspaceFromHistory;
+        window.resetZoomAndCenter = resetZoomAndCenter;
 
         // --- Startup Initialization ---
         loadAllData();
         setupGlobalDragListeners();
         setupFloatingMenuDelay();
+        setupZoomPanEvents(); // ズーム＆パンイベントの有効化
     </script>
 </body>
 </html>
