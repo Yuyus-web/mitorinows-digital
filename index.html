@@ -482,6 +482,9 @@
         let enteredFromAdmin = false; 
         let unsubscribeWorkspaces = null; 
         let unsubscribeCurrentWorkspace = null; 
+        
+        // Touch デバイスでの意図しない Mousedown イベント（Ghost Click）を防止するフラグ
+        window.isTouchActive = false;
 
         // --- Core Utility Functions ---
         function escapeHtml(str) { return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' }[m])); }
@@ -1258,6 +1261,17 @@
                     const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
                     const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
                     showNoteContextMenu(e, r, cx, cy);
+                    
+                    // 強制的にドラッグ状態を解除
+                    if (draggedElement === card) {
+                        draggedElement.style.zIndex = "10";
+                        draggedElement = null;
+                    }
+                    if (draggedStockRecord && draggedStockRecord.id === r.id) {
+                        if (stockGhost) { stockGhost.remove(); stockGhost = null; }
+                        draggedStockRecord = null;
+                        stockDragMode = 'none';
+                    }
                 };
 
                 // 付箋の中身
@@ -1504,6 +1518,10 @@
         function startStockDrag(e, record) {
             if (opMode !== 'select') return;
             
+            // Ghost Click 防止
+            if (e.type === 'mousedown' && window.isTouchActive) return;
+            if (e.type.includes('touch')) window.isTouchActive = true;
+
             const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             const cy = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
             
@@ -1552,12 +1570,18 @@
                 }
             }, 500);
 
+            if (e.type.includes('touch') && e.cancelable) e.preventDefault();
             e.stopPropagation();
         }
 
         // --- Global Drag Logic Helper (ズーム倍率を考慮した座標軸マッピングと長押し対応) ---
         function startDrag(e, id, record) {
             if (opMode !== 'select') return;
+            
+            // Ghost Click 防止
+            if (e.type === 'mousedown' && window.isTouchActive) return;
+            if (e.type.includes('touch')) window.isTouchActive = true;
+
             const el = document.getElementById(id); if (!el) return;
             draggedElement = el;
             
@@ -1576,7 +1600,7 @@
             const currentLeft = el.offsetLeft;
             const currentTop = el.offsetTop;
             
-            // ビューポート基準ピクセル（画面全体の絶対座標からズームを考慮して逆算）
+            // ビューポート基準ピクセル
             const viewportRect = document.getElementById("boardViewport").getBoundingClientRect();
             const clickXInViewport = (cx - viewportRect.left) / zoomScale;
             const clickYInViewport = (cy - viewportRect.top) / zoomScale;
@@ -1604,6 +1628,7 @@
                 }
             }, 500);
 
+            if (e.type.includes('touch') && e.cancelable) e.preventDefault();
             e.stopPropagation();
         }
 
@@ -1687,7 +1712,7 @@
                     const r = allRecords.find(x => x.id === rId);
                     if (r) checkStickySnapping(r);
                     drawConnections(); 
-                    e.preventDefault();
+                    if (e.type && e.type.includes('touch') && e.cancelable) e.preventDefault();
                 }
             };
             const end = async (e) => {
@@ -1818,6 +1843,31 @@
                     isDraggedInterpDisconnected = false; isDraggedImproveDisconnected = false;
                 }
             };
+            
+            // 背景クリックなどで状態を強制リセットしてGhost Clickの影響を排除
+            const resetDragState = (e) => {
+                if (e.target.closest('.sticky-note') || e.target.closest('#stockDrawer') || e.target.closest('#noteContextMenu')) return;
+                
+                if (draggedElement) {
+                    draggedElement.style.zIndex = "10";
+                    draggedElement = null;
+                }
+                if (draggedStockRecord) {
+                    if (stockGhost) { stockGhost.remove(); stockGhost = null; }
+                    const originalCard = document.getElementById(`stock-${draggedStockRecord.id}`);
+                    if (originalCard) {
+                        originalCard.style.opacity = '1';
+                        originalCard.style.display = '';
+                    }
+                    draggedStockRecord = null;
+                    stockDragMode = 'none';
+                }
+            };
+            
+            const container = document.getElementById("boardContainer");
+            container.addEventListener('mousedown', resetDragState);
+            container.addEventListener('touchstart', resetDragState, { passive: true });
+
             document.addEventListener('mousemove', move); document.addEventListener('mouseup', end); document.addEventListener('touchmove', move, { passive: false }); document.addEventListener('touchend', end);
             window.addEventListener('resize', adjustNotesOnResize);
         }
@@ -2436,6 +2486,7 @@
                 const isRightOrMiddleClick = (e.button === 1 || e.button === 2);
 
                 if (isBackgroundLeftClick || isRightOrMiddleClick) {
+                    if (window.isTouchActive) return; // タッチデバイスのGhost Click防止
                     isPanning = true;
                     startPanX = e.clientX - panX;
                     startPanY = e.clientY - panY;
