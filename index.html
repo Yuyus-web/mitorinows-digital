@@ -214,7 +214,7 @@
         <main class="flex-grow w-full mx-auto px-1 sm:px-2 py-1.5 sm:py-2 flex flex-col relative">
             <div id="boardContainer" class="board-canvas rounded-2xl border border-slate-200 shadow-inner overflow-hidden w-full flex-grow relative bg-slate-50">
                 
-                <!-- ズーム・移動可能な実体ボード領域 (後方互換性と3:2比率を保つ3000px * 2000pxキャンバス) -->
+                <!-- ズーム・移動可能な実体ボード領域 -->
                 <div id="boardViewport" class="absolute pointer-events-auto shadow-2xl" style="width: 3000px; height: 2000px; left: 0px; top: 0px; transform: scale(1.0); transform-origin: 0 0;">
                     
                     <!-- 背景デザイン -->
@@ -283,7 +283,7 @@
         </main>
     </div>
 
-    <!-- 付箋コンテキストメニュー（長押し・右クリック用） -->
+    <!-- 付箋コンテキストメニュー（クリック・長押し・右クリック用） -->
     <div id="noteContextMenu" class="hidden fixed z-[999999] bg-white border border-slate-200 rounded-xl shadow-2xl flex-col text-xs font-bold text-slate-700 overflow-hidden min-w-[140px]">
         <button id="ctxMenuEdit" class="flex items-center gap-2.5 px-4 py-3 hover:bg-slate-50 transition text-left"><i class="fa-solid fa-pen text-slate-400 w-4"></i>編集する</button>
         <button id="ctxMenuUnlink" class="hidden items-center gap-2.5 px-4 py-3 hover:bg-slate-50 transition text-left"><i class="fa-solid fa-link-slash text-slate-400 w-4"></i>リンクを切る</button>
@@ -303,9 +303,15 @@
                     <input type="hidden" id="noteModalMode">
                     <input type="hidden" id="noteModalRecordId">
                     <input type="hidden" id="noteModalType">
-                    <div id="noteModalInputContainer" class="p-1">
-                        <label id="noteModalInputLabel" class="block text-xs font-bold mb-1.5 transition-colors duration-200"></label>
-                        <textarea id="noteText" required rows="4" class="w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" placeholder="ここに入力してください..."></textarea>
+                    <div id="noteModalInputContainer" class="p-1 flex flex-col gap-3">
+                        <div>
+                            <label class="block text-xs font-bold mb-1.5 text-slate-600">記入者氏名</label>
+                            <input type="text" id="noteAuthor" class="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-400 focus:outline-none transition-all duration-200 shadow-sm" placeholder="名前を入力（省略可）">
+                        </div>
+                        <div>
+                            <label id="noteModalInputLabel" class="block text-xs font-bold mb-1.5 transition-colors duration-200"></label>
+                            <textarea id="noteText" required rows="4" class="w-full p-3.5 bg-white border border-slate-200 rounded-xl text-base sm:text-sm focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" placeholder="ここに入力してください..."></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="flex items-center justify-end gap-2.5 p-5 border-t border-slate-100 flex-shrink-0">
@@ -409,7 +415,7 @@
         const DISTANCE_3CM_PX = 114; 
         const DISTANCE_5CM_PX = 190; 
 
-        // ズーム・パン状態変数 (既存データとの互換性のために3000px * 2000px基準に設定)
+        // ズーム・パン状態変数
         let panX = 0;
         let panY = 0;
         let zoomScale = 1.0;
@@ -421,7 +427,7 @@
         let initialScale = 1.0;
         let initialTouchCenter = { x: 0, y: 0 };
 
-        // 長押しメニュー用変数
+        // コンテキストメニュー（長押し・クリック）用変数
         let longPressTimer = null;
         let pressStartX = 0;
         let pressStartY = 0;
@@ -447,6 +453,7 @@
         let isDraggedInterpDisconnected = false;
         let isDraggedImproveDisconnected = false;
 
+        // ペンのスムーズ描画用キャッシュとデフォルト細字設定
         let dCanvas = null, dCtx = null, isDrawing = false, opMode = 'select', penColor = '#1e293b', penWidth = 3;
         let currentStrokePoints = [], lastEraserCoords = null;
         let menuDelayTimer = null;
@@ -941,15 +948,17 @@
             document.getElementById("noteModalMode").value = mode;
             document.getElementById("noteModalType").value = type;
             document.getElementById("noteModalRecordId").value = recordId || "";
-            const t = NOTE_THEMES[type], textEl = document.getElementById("noteText");
+            const t = NOTE_THEMES[type], textEl = document.getElementById("noteText"), authorEl = document.getElementById("noteAuthor");
             
             if (mode === 'add') {
                 textEl.value = "";
+                authorEl.value = localStorage.getItem("mitorinows_last_author") || "";
                 document.getElementById("noteModalTitle").innerHTML = `${t.icon} 付箋を追加`;
                 document.getElementById("noteModalSubmitBtn").innerHTML = '<i class="fa-solid fa-circle-plus"></i> ボードに貼る';
             } else {
                 const r = allRecords.find(x => x.id === recordId);
                 textEl.value = r ? r.text : "";
+                authorEl.value = r && r.author ? r.author : "";
                 document.getElementById("noteModalTitle").innerHTML = `${t.icon} 記録 of 編集`;
                 document.getElementById("noteModalSubmitBtn").innerHTML = '変更を保存';
             }
@@ -988,9 +997,12 @@
             const mode = document.getElementById("noteModalMode").value;
             const type = document.getElementById("noteModalType").value;
             const text = document.getElementById("noteText").value.trim();
+            const author = document.getElementById("noteAuthor").value.trim();
             const recordId = document.getElementById("noteModalRecordId").value;
 
             if (!text) return showToast("入力してください", "error");
+            
+            localStorage.setItem("mitorinows_last_author", author);
 
             try {
                 if (mode === 'add') {
@@ -998,12 +1010,12 @@
                     // 新規付箋が3000*2000のほぼ中央（45%〜55%付近）に生成されるように調整
                     await setDoc(doc(recordsCol, newRecordId), {
                         workspaceId: currentWorkspaceId,
-                        type, text, x: 45 + Math.random() * 10, y: 45 + Math.random() * 10, w: 113, h: 97,
+                        type, text, author, x: 45 + Math.random() * 10, y: 45 + Math.random() * 10, w: 113, h: 97,
                         connectedFactId: null, connectedInterpId: null, createdAt: new Date().toISOString()
                     });
                     showToast("追加しました");
                 } else {
-                    await updateDoc(doc(recordsCol, recordId), { text });
+                    await updateDoc(doc(recordsCol, recordId), { text, author });
                     showToast("変更を保存しました");
                 }
                 await updateDoc(doc(workspacesCol, currentWorkspaceId), { updatedAt: new Date().toISOString() });
@@ -1168,6 +1180,11 @@
                         <div class="flex-grow flex items-start justify-start w-full h-full pointer-events-none">
                             <p class="font-adjust-target leading-tight handwritten font-medium text-left whitespace-pre-wrap w-full pointer-events-none m-0 pt-1"></p>
                         </div>
+                        ${r.author ? `
+                        <div class="absolute bottom-1 left-2 opacity-60 flex items-center gap-1 text-[9px] font-bold select-none pointer-events-none text-slate-600 bg-white/70 px-1.5 py-0.5 rounded max-w-[50%] truncate shadow-sm">
+                            <i class="fa-solid fa-user text-[8px]"></i> <span class="truncate">${escapeHtml(r.author)}</span>
+                        </div>
+                        ` : ''}
                         <div class="absolute bottom-1 right-2 opacity-40 flex items-center gap-1 text-[10px] font-bold select-none pointer-events-none bg-white/50 px-1 rounded">
                             ${t.icon} <span class="tracking-widest">${t.label}</span>
                         </div>
@@ -1356,19 +1373,41 @@
                     e.preventDefault();
                 }
             };
-            const end = async () => {
+            const end = async (e) => {
                 // 長押し判定タイマーの解除
-                clearTimeout(longPressTimer);
-                longPressTimer = null;
+                if (longPressTimer) {
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
 
                 if (resizingElement) {
                     const rId = resizingElement.id.replace('note-', '');
                     await updateDoc(doc(recordsCol, rId), { w: resizingElement.offsetWidth, h: resizingElement.offsetHeight });
                     resizingElement.style.zIndex = "10"; resizingElement = null;
                 }
+                
                 if (draggedElement) {
                     const rId = draggedElement.id.replace('note-', '');
                     const r = allRecords.find(x => x.id === rId);
+
+                    // クリック判定 (ドラッグ距離が5px未満の場合)
+                    let isClick = false;
+                    let cx = pressStartX, cy = pressStartY; 
+                    if (e) {
+                        cx = e.type && e.type.includes('touch') ? (e.changedTouches && e.changedTouches.length > 0 ? e.changedTouches[0].clientX : pressStartX) : (e.clientX || pressStartX);
+                        cy = e.type && e.type.includes('touch') ? (e.changedTouches && e.changedTouches.length > 0 ? e.changedTouches[0].clientY : pressStartY) : (e.clientY || pressStartY);
+                        if (Math.abs(cx - pressStartX) < 5 && Math.abs(cy - pressStartY) < 5) {
+                            isClick = true;
+                        }
+                    }
+
+                    if (isClick && r) {
+                        showNoteContextMenu(e, r, cx, cy);
+                        draggedElement.style.zIndex = "10";
+                        draggedElement = null;
+                        return; // クリック時は位置更新を行わない
+                    }
+
                     if (r) {
                         try {
                             const updates = { x: parseFloat(draggedElement.style.left), y: parseFloat(draggedElement.style.top) };
@@ -1591,6 +1630,28 @@
         }
 
         // --- Drawing Canvas Logic (Viewport実寸対応) ---
+        function updateEraserCursor(cx, cy) {
+            let cursor = document.getElementById('eraserCursor');
+            if (!cursor) {
+                cursor = document.createElement('div');
+                cursor.id = 'eraserCursor';
+                cursor.className = 'fixed rounded-full bg-red-500/15 border-[1.5px] border-red-500/40 pointer-events-none z-[999999]';
+                cursor.style.transform = 'translate(-50%, -50%)';
+                document.body.appendChild(cursor);
+            }
+            if (opMode === 'eraser' && isDrawing) {
+                // ズームスケールに合わせてカーソルの見た目の大きさを調整
+                const size = (penWidth + 30) * zoomScale;
+                cursor.style.width = `${size}px`;
+                cursor.style.height = `${size}px`;
+                cursor.style.left = `${cx}px`;
+                cursor.style.top = `${cy}px`;
+                cursor.classList.remove('hidden');
+            } else {
+                cursor.classList.add('hidden');
+            }
+        }
+
         function initDrawingCanvas() {
             dCanvas = document.getElementById("drawingCanvas"); if (!dCanvas) return; dCtx = dCanvas.getContext("2d");
             dCanvas.onmousedown = onDrawStart; dCanvas.onmousemove = onDrawMove; window.addEventListener("mouseup", onDrawEnd);
@@ -1612,21 +1673,6 @@
         function setPenColor(c) { penColor = c; ['#1e293b', '#ef4444', '#0ea5e9', '#10b981'].forEach(x => document.getElementById(`color-${x}`).className = `w-6 h-6 rounded-full border-2 ${x === c ? 'border-indigo-600 scale-110' : 'border-transparent hover:scale-105'} ${x === '#1e293b' ? 'bg-slate-800' : x === '#ef4444' ? 'bg-red-500' : x === '#0ea5e9' ? 'bg-sky-500' : 'bg-emerald-500'}`); }
         function setPenWidth(w) { penWidth = w; [3, 6, 12].forEach(x => document.getElementById(`width-${x}`).className = `w-8 h-8 rounded-lg font-bold text-[10px] flex items-center justify-center ${x === w ? 'bg-slate-800 text-white' : 'text-slate-500 hover:bg-slate-50'}`); }
         
-        function updateEraserCursor(cx, cy) {
-            const cursor = document.getElementById('eraserCursor');
-            if (opMode === 'eraser' && isDrawing) {
-                // ズームスケールに合わせてカーソルの見た目の大きさを調整
-                const size = (penWidth + 30) * zoomScale;
-                cursor.style.width = `${size}px`;
-                cursor.style.height = `${size}px`;
-                cursor.style.left = `${cx}px`;
-                cursor.style.top = `${cy}px`;
-                cursor.classList.remove('hidden');
-            } else {
-                cursor.classList.add('hidden');
-            }
-        }
-
         function getCanvasCoords(e) { 
             const r = canvasRectCache || dCanvas.getBoundingClientRect();
             const cx = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
@@ -1638,6 +1684,7 @@
             
             return { pxX: localX, pxY: localY, pctX: (localX / 3000) * 100, pctY: (localY / 2000) * 100 }; 
         }
+
         function onDrawStart(e) { 
             if (opMode === 'select') return; 
             isDrawing = true; 
@@ -1664,6 +1711,7 @@
             } 
             if (e.type.includes('touch') && e.cancelable) e.preventDefault(); 
         }
+
         function onDrawMove(e) { 
             if (!isDrawing || opMode === 'select') return; 
 
@@ -1693,7 +1741,9 @@
         async function onDrawEnd(e) {
             if (!isDrawing) return; isDrawing = false;
             canvasRectCache = null;
-            document.getElementById('eraserCursor').classList.add('hidden');
+            const cursor = document.getElementById('eraserCursor');
+            if(cursor) cursor.classList.add('hidden');
+
             if (opMode !== 'eraser' && currentStrokePoints.length) {
                 const newDrawingId = "draw-" + Date.now() + "-" + Math.random().toString(36).substr(2, 9);
                 const newDrawing = { 
