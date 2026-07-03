@@ -288,8 +288,8 @@
                 <button onclick="toggleStockDrawer()" class="absolute -top-9 left-1/2 transform -translate-x-1/2 bg-slate-700 text-white px-6 py-2 rounded-t-xl text-[11px] font-bold shadow-[0_-2px_5px_rgba(0,0,0,0.15)] flex items-center gap-2 hover:bg-slate-600 transition-colors pointer-events-auto">
                     <i id="stockDrawerIcon" class="fa-solid fa-chevron-up"></i> 手元の付箋 <span id="stockCountBadge" class="bg-indigo-500 px-1.5 py-0.5 rounded-full text-[9px] leading-none">0</span>
                 </button>
-                <!-- ストックエリア -->
-                <div class="h-[140px] px-4 py-3 flex gap-4 overflow-x-auto overflow-y-hidden items-center scrollbar-thin scrollbar-thumb-slate-300 pointer-events-auto" id="stockContainer" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
+                <!-- ストックエリア: 多段(flex-wrap)対応、最大高さ制限付きで縦スクロール -->
+                <div class="max-h-[45vh] min-h-[140px] px-4 py-4 flex flex-wrap gap-4 overflow-y-auto content-start items-start scrollbar-thin scrollbar-thumb-slate-300 pointer-events-auto" id="stockContainer" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">
                     <!-- ストックされた付箋がここに入る -->
                 </div>
             </div>
@@ -1475,7 +1475,7 @@
             }
         }
 
-        function handleStockReorder(cx, recordId) {
+        function handleStockReorder(cx, cy, recordId) {
             const container = document.getElementById("stockContainer");
             if (!container) return;
             const cards = Array.from(container.children);
@@ -1486,13 +1486,18 @@
                 const card = cards[i];
                 if (card === draggingCard) continue;
                 const rect = card.getBoundingClientRect();
-                const cardCx = rect.left + rect.width / 2;
-                if (cx < cardCx) {
-                    container.insertBefore(draggingCard, card);
-                    return;
+                
+                // カードの行判定（Y軸が重なっているか）
+                if (cy >= rect.top && cy <= rect.bottom) {
+                    const cardCx = rect.left + rect.width / 2;
+                    // カードの中心より左にあれば、そのカードの前に挿入
+                    if (cx < cardCx) {
+                        container.insertBefore(draggingCard, card);
+                        return;
+                    }
                 }
             }
-            container.appendChild(draggingCard); // 一番右
+            container.appendChild(draggingCard); // どの条件にも合わなければ一番最後
         }
 
         function saveStockOrder() {
@@ -1645,30 +1650,44 @@
 
                 // ストックからのドラッグ中
                 if (draggedStockRecord && stockGhost) {
+                    const drawerRect = document.getElementById("stockDrawer").getBoundingClientRect();
+                    
                     if (stockDragMode === 'none') {
                         const dx = cx - pressStartX;
                         const dy = cy - pressStartY;
-                        if (dy < -30) { // 上に動かした
-                            stockDragMode = 'board';
-                            const originalCard = document.getElementById(`stock-${draggedStockRecord.id}`);
-                            if (originalCard) originalCard.style.display = 'none';
-                        } else if (Math.abs(dx) > 10) {
-                            stockDragMode = 'reorder';
+                        if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                            stockDragMode = (cy < drawerRect.top) ? 'board' : 'reorder';
+                            if (stockDragMode === 'board') {
+                                const originalCard = document.getElementById(`stock-${draggedStockRecord.id}`);
+                                if (originalCard) originalCard.style.display = 'none';
+                            }
                         }
                     }
 
-                    if (stockDragMode === 'board') {
-                        stockGhost.style.left = `${cx - (draggedStockRecord.w || 113)/2}px`;
-                        stockGhost.style.top = `${cy - (draggedStockRecord.h || 97)/2}px`;
-                    } else if (stockDragMode === 'reorder') {
-                        stockGhost.style.left = `${cx - (draggedStockRecord.w || 113)/2}px`;
-                        stockGhost.style.top = `${stockGhost.dataset.initialTop}px`;
-                        handleStockReorder(cx, draggedStockRecord.id);
-                    } else {
-                        // noneの場合はそのまま追従
-                        stockGhost.style.left = `${cx - (draggedStockRecord.w || 113)/2}px`;
-                        stockGhost.style.top = `${cy - (draggedStockRecord.h || 97)/2}px`;
+                    // モードの動的切り替え
+                    if (stockDragMode === 'board' || stockDragMode === 'reorder') {
+                        if (cy < drawerRect.top && stockDragMode !== 'board') {
+                            stockDragMode = 'board';
+                            const originalCard = document.getElementById(`stock-${draggedStockRecord.id}`);
+                            if (originalCard) originalCard.style.display = 'none';
+                        } else if (cy >= drawerRect.top && stockDragMode !== 'reorder') {
+                            stockDragMode = 'reorder';
+                            const originalCard = document.getElementById(`stock-${draggedStockRecord.id}`);
+                            if (originalCard) {
+                                originalCard.style.display = '';
+                                originalCard.style.opacity = '0.3';
+                            }
+                        }
                     }
+
+                    // ゴーストの位置追従
+                    stockGhost.style.left = `${cx - (draggedStockRecord.w || 113)/2}px`;
+                    stockGhost.style.top = `${cy - (draggedStockRecord.h || 97)/2}px`;
+
+                    if (stockDragMode === 'reorder') {
+                        handleStockReorder(cx, cy, draggedStockRecord.id);
+                    }
+
                     if (e.type && e.type.includes('touch') && e.cancelable) e.preventDefault();
                     return;
                 }
